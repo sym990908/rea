@@ -37,3 +37,13 @@
 #inception-last-layer .ill-data svg{height:auto;aspect-ratio:1}
 }
 
+
+
+/* filled figures */
+.zh-fig-rich { margin: 1.6em 0 2em; overflow-x: auto; }
+.zh-fig-rich figure { margin: 0; max-width: none; }
+.zh-fig-rich figcaption { font: 13px/1.55 var(--sans, system-ui, sans-serif); color: #5a6a6e; margin-top: 10px; }
+.zh-fig-rich figcaption a { margin-left: 0.4em; white-space: nowrap; }
+.zh-fig-rich svg image, .zh-fig-rich img { max-width: 100%; }
+.zh-fig-rich .wide, .zh-fig-rich figure.wide { width: 100%; }
+#neuron-scientist-gallery { margin: 1em 0; }
