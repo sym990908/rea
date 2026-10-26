@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>神经网络本已清晰 · Neural Networks Are Already Clean（临时中文译本）</title>
+<meta name="description" content="Nick Cammarata / Goodfire 文章《Neural Networks Are Already Clean》的临时中文译本（非正式）。">
+<link rel="canonical" href="https://already-clean.goodfire.com/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="zh-reader.css">
+<link rel="stylesheet" href="packing-vs-growing.css">
+<script src="figure-pause.js"></script>
+<style id="zh-public-figures">
+
+/* The image grid spans the text column exactly; row labels hang in the left margin (above their row when there is no margin). */
+#microscope-timeline{width:auto;max-width:none;margin:30px 0;padding:0;border:0}
+#microscope-timeline .mt-grid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+#microscope-timeline .mt-corner{display:none}
+#microscope-timeline .mt-year,#microscope-timeline .mt-row,#microscope-timeline .mt-photos-head{font:500 13px/1.3 var(--sans);color:var(--muted)}
+#microscope-timeline .mt-year,#microscope-timeline .mt-photos-head{padding-bottom:1px}
+#microscope-timeline .mt-row{position:absolute;grid-column:1/2;right:calc(100% + 14px);top:50%;transform:translateY(-50%);white-space:nowrap}
+#microscope-timeline .mt-r1{grid-row:2/3}
+#microscope-timeline .mt-r2{grid-row:3/4}
+#microscope-timeline .mt-photos-head,#microscope-timeline .mt-photos{margin-left:12px}
+#microscope-timeline .mt-photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
+#microscope-timeline .mt-photos-label{display:none}
+#microscope-timeline img{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:2px}
+#microscope-timeline figcaption{font:11px/1.4 var(--sans);color:var(--muted);margin:8px 0 0;max-width:none;text-align:left}
+@media(max-width:900px){
+#microscope-timeline .mt-row{position:static;grid-column:1/-1;grid-row:auto;transform:none;margin-top:6px}
+}
+@media(max-width:720px){
+#microscope-timeline{margin:26px 0}
+#microscope-timeline .mt-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#microscope-timeline .mt-photos-head{display:none}
+#microscope-timeline .mt-photos{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));margin:0}
+#microscope-timeline .mt-photos-label{display:block;grid-column:1/-1;font:500 11px/1.3 var(--sans);color:var(--muted);margin:1px 0 1px}
+}
+
+
+/* Public Chinese mirror figure chrome */
+.zh-fig-rich { margin: 1.6em 0 1.8em; }
+.zh-fig-rich > figure { margin: 0; max-width: 100%; }
+.zh-fig-rich figcaption { font-family: var(--sans); font-size: 13.5px; color: var(--muted); margin-top: 10px; line-height: 1.55; }
+.zh-fig-rich figcaption a { color: var(--accent, #28627b); }
+.zh-static-grid { margin: 0; }
+.zh-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.zh-grid-3 > figure { margin: 0; }
+.zh-grid-3 img { display:block; width:100%; height:auto; border-radius: 4px; background:#eee; }
+.zh-grid-3 figcaption { margin-top: 6px; font-size: 12.5px; text-align:center; color: var(--muted); font-family: var(--sans); }
+.zh-fig-thumb { margin: 1.4em 0; padding: 12px 14px; background:#fff; border: 1px solid #d7e0df; border-radius: 6px; }
+.zh-fig-thumb .zh-thumb-row { display:flex; flex-wrap:wrap; gap:8px; margin: 8px 0 4px; }
+.zh-fig-thumb .zh-thumb-row img { width:72px; height:72px; object-fit:cover; border-radius:4px; background:#eee; }
+.zh-fig-placeholder { /* keep for remaining */ }
+@media (max-width: 700px) {
+  .zh-grid-3 { grid-template-columns: 1fr; }
+  #v-figure.vx .vx-circ { grid-template-columns: 1fr; justify-items: center; gap: 16px; }
+  #v-figure.vx .vx-rows { grid-template-columns: 1fr; gap: 18px; }
+}
+/* inception-last-layer compact fallback if original CSS incomplete */
+#inception-last-layer .ill-strip { display:grid; grid-template-columns: 1fr 1fr 2.2fr; gap:8px; align-items:start; }
+#inception-last-layer .ill-fv { width:100%; height:auto; background:#f3f3f1; }
+#inception-last-layer .ill-data { display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:4px; }
+#inception-last-layer .ill-data svg { width:100%; height:auto; background:#f3f3f1; }
+#inception-last-layer .ill-lab { font:12px/1.3 var(--sans); color:var(--muted); }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#essay">跳到正文</a>
+<div class="banner">
+  <strong>临时中文译本（公开镜像）</strong>：关键图与动画已内嵌镜像资源；完整交互仍以原文为准；<strong>非 Goodfire 官方译本</strong>。
+  原文：<a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">already-clean.goodfire.com</a>
+</div>
+<div class="wrap">
+  <header class="cover">
+    <p class="eyebrow">临时中文译本（非正式）</p>
+    <h1>神经网络本已清晰</h1>
+    <p class="en-title">Neural Networks Are Already Clean</p>
+    <p class="meta">Nick Cammarata · <a href="https://goodfire.com/" target="_blank" rel="noopener">Goodfire</a> · 2026</p>
+    <p class="meta">原文链接：<a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">https://already-clean.goodfire.com/</a></p>
+    <p class="dek">早期模型生物中多义性（polysemanticity）的成因并非叠加（superposition），而是若干常见、大多可修复的问题。我们现在已能理解参数规模可达万亿量级模型中的大多数神经元，并认为机制可解释性（mechanistic interpretability）的前景可能远好于此前的判断。</p>
+  </header>
+
+  <figure class="city-hero">
+    <div class="city-knot" id="city-knot" role="img" aria-label="城市与绳结"></div>
+    <figcaption style="font-family:var(--sans);font-size:13.5px;color:var(--muted);margin-top:8px">
+      页首动画：城市 vs 绳结（本地镜像）。若未显示，请使用支持 WebGL 的现代浏览器。
+    </figcaption>
+  </figure>
+  <script type="module">
+    import { mountCityAndKnot } from "./assets/city-and-knot/city-and-knot.js";
+    requestAnimationFrame(() => setTimeout(() => {
+      try { window.__ck = mountCityAndKnot(document.getElementById("city-knot"), {}); }
+      catch (err) { console.error(err); }
+    }, 50));
+  </script>
+
+  <nav class="toc" aria-label="目录"><h2>目录</h2><ol><li><a href="#简要版">简要版</a></li><li><a href="#汽车与动物">汽车与动物</a></li><li><a href="#显微镜误差史">显微镜误差史</a></li><li><a href="#递归泛化">递归泛化</a></li><li><a href="#叠加">叠加</a></li><li><a href="#空白处的叠加">空白处的叠加</a></li><li><a href="#探索图像模型">探索图像模型</a></li><li><a href="#弱激活重要吗">弱激活重要吗？</a></li><li><a href="#探索语言模型">探索语言模型</a></li><li><a href="#拉远">拉远</a></li><li><a href="#附录">附录</a></li><li><a href="#关于-叠加-的说明">关于「叠加」的说明</a></li><li><a href="#论模拟分数">论模拟分数</a></li><li><a href="#深层中的特征可视化">深层中的特征可视化</a></li><li><a href="#分离符号体制">分离符号体制</a></li><li><a href="#观察残差流">观察残差流</a></li><li><a href="#弱激活-进一步度量">弱激活：进一步度量</a></li><li><a href="#缺失的曲线">缺失的曲线</a></li><li><a href="#对抗样本去向何方">对抗样本去向何方</a></li><li><a href="#记忆与组合">记忆与组合</a></li><li><a href="#社会保障-检测与使用">社会保障：检测与使用</a></li><li><a href="#归因图审计">归因图审计</a></li><li><a href="#可能输的解释">可能输的解释</a></li><li><a href="#边特征化器">边特征化器</a></li><li><a href="#网络为何泛化">网络为何泛化</a></li><li><a href="#回路竞赛">回路竞赛</a></li><li><a href="#观察神经元发育">观察神经元发育</a></li><li><a href="#玩具模型">玩具模型</a></li><li><a href="#回路生态学续">回路生态学续</a></li><li><a href="#未解决的响应">未解决的响应</a></li><li><a href="#关于特征与定义的说明">关于特征与定义的说明</a></li><li><a href="#与元模型的关系">与元模型的关系</a></li><li><a href="#规模帮助还是伤害叠加">规模帮助还是伤害叠加？</a></li><li><a href="#关于标题">关于标题</a></li><li><a href="#与联合特征的关系">与联合特征的关系</a></li><li><a href="#为何我们暂不为递归泛化担忧">为何我们暂不为递归泛化担忧</a></li><li><a href="#递归泛化难以随意改动吗">递归泛化难以随意改动吗？</a></li><li><a href="#与注意力叠加的关系">与注意力叠加的关系</a></li><li><a href="#神经科学-以及我为何关心">神经科学，以及我为何关心</a></li><li><a href="#致谢">致谢</a></li><li><a href="#先前工作">先前工作</a></li><li><a href="#参考文献">参考文献</a></li><li><a href="#引用">引用</a></li></ol></nav>
+
+  <main id="essay">
+    <article>
+<p><em>早期模型生物中多义性（polysemanticity）的成因并非叠加（superposition），而是若干常见、大多可修复的问题。我们现在已能理解参数规模可达万亿量级模型中的大多数神经元，并认为机制可解释性（mechanistic interpretability）的前景可能远好于此前的判断。</em></p>
+<p>Nick Cammarata · Goodfire</p>
+
+
+<h2 id="简要版">简要版</h2>
+<p>我认为，关于神经网络的本质，我有好消息要说。</p>
+<p>在对图像模型与语言模型中的神经元与回路（circuit）进行数月研究之后，我逐渐相信：网络自身的机制就是其可读的基本构件，而机制可解释性的前景可能远好于我曾经担忧的程度。曾使包括我在内的该领域许多人相信「网络任意打包概念」的多义性与叠加之典范证据，其实被误读了。看似任意打包的现象，大多是一种我将称为<strong>递归泛化</strong>（recursive generalization）的母题（motif），其令人担忧的程度要低得多。这意味着我们可以直接研究网络，而不必先去「解结」。<strong>神经网络本已清晰。</strong></p>
+<p>机制可解释性至少有两种进路。第一种是对网络本身做快速的<a href="https://en.wikipedia.org/wiki/Normal_science">常规科学</a>（normal science）：观察网络的神经元与回路、研究其间关系、追踪数据如何流经它们，并以代理（agent）规模运行实验来检验解释。第二种则从一份假设特征的清单出发，试图把它们全部抽取出来，设计愈发复杂的重构目标，并通常忽略原始网络。</p>
+<p>该领域始于第一种进路，又退回到第二种，因为神经网络看起来像纠缠的绳结。我们有多义神经元的典范例子——「多义」泛指一个神经元看似有多项无关任务，或看起来无法理解。最著名的一个出现在图像模型中：同时响应猫脸与汽车前脸。而该领域早期模型生物 InceptionV1 的最后一层，似乎充满任意混合，几乎不清楚该如何研究：几乎没有神经元易于解释。</p>
+<p>对多义性的主流解释是<strong>叠加</strong>（superposition）。它提出一种新的学习原则：当神经网络用尽神经元时，它不再把相关事物归在一起，而是开始把无关事物叠在一起——仅仅因为它们互不干扰。结果是一种绳结：网络本可以以许多几乎同样好的方式折叠，因此一个神经元把哪些东西归在一起几乎不告诉你什么。你必须先把绳结展开，才能研究任何东西。实践上这意味着训练第二个模型——例如稀疏自编码器（sparse autoencoder）这类分解——去逼近「展开后」的网络，再去研究那个近似。若网络真是打结的，也许别无选择。</p>
+<p>一个主要结果是：叠加并不是对 InceptionV1 的正确解释。架构问题使较后层溢出。薄弱的可解释性工具放大了这些问题，使深层看起来语无伦次。此后，为帮助深层学得更好而做的架构改动，意外地使它们更可解释。我们最初研究 InceptionV1 时，在其最后一层几乎找不到可解释的神经元。但凭借这些平常的改进——模型规模与训练数据不变——该最后一层中 99–100% 的神经元易于解释，模型从头到尾大体可读。这是我感到自己大体上理解了的第一个非平凡神经网络；你可以在此<a href="microscope/medium.html">浏览它</a>。我在约 300× 的规模范围内训练了其多个版本，每一尺度上都大体可读。空间更少时，网络并不把无关事物叠在一起；其神经元只是覆盖更粗粒度的概念，例如一个汽车神经元覆盖多种汽车。空间更多时，该神经元分化为许多具体的汽车。因此问题并不在于存在第二种学习原则，而只是第一种原则的一次平常的学习失败，并且很容易修复。</p>
+<p>视觉中多义性与叠加的典范例子也是错误。2019 年，Chris Olah 与我找到了最初在 <a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a>[4] 中作为叠加现象引入的那条回路。它显示一个汽车特征似乎扩散进一组无关的狗神经元。那是我们展示过的唯一一条，也是我所见过的唯一一条。我们把它读成：网络把汽车放进一个高维藏身之所，供下游神经元再读出。但没有任何东西读出那种组合。它并没有隐藏任何东西；那只是平常的泛化与组合。据我所知，尚无人发表过第二条具有正确形状的回路。</p>
+<p>现代语言模型也远比一般认为的更可解释。Anthropic 的 <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity</a>[10]（2023）研究一个小型单层模型，按其所用量表给中位神经元打了 0 分（满分 14），意味着评分者无法形成任何假设。我在 OpenAI 发起的<a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">自动化可解释性项目</a>[8]（同为 2023）按我们最宽松的度量，发现约 1.7% 的神经元可解释。</p>
+<p>有了更好的工具与现代模型，局面大不相同。在对 Qwen3-32B 的初步审计中，我们估计大约 90% 的神经元极（neuron pole）有一项主任务，常带有小的相关旁枝；另有约 7% 有两项相关任务；只有约 2–4% 尚未被理解¹。稠密模型与混合专家（Mixture of Experts）模型大致相似。我们在参数达万亿量级的模型（如 Kimi K3）中也看到相似结果，配套论文将更详细讨论。这些百分比把高维图景压缩成几个数字，精确数字取决于你把「一件事」的阈值设在何处——例如是否把两种语言中密切相关的习语算作一件。我认为可解释性并不怎么取决于这个问题。重要得多的是：事物为何首先共享同一个神经元。</p>
+<p>¹ 关于这一数字的说明：具有一项任务的神经元占比，取决于你如何设定弱激活的计数阈值、深度、子回路密度，以及你如何看待「一件事」。深入弱激活的程度是一大因素。下文有一节讨论弱激活。它往往增加「相关事物」的数量，多于改变该神经元是否在对某种可读之物做判断。例如，特朗普神经元的弱激活会带入 MAGA 帽及与他相关的人。泰坦尼克神经元的弱激活会带入更一般的航程故事，或那个时代的蒸汽机等技术。还有一个问题是：该关心激活分位数，还是最强激活的比例。总体而言，我认为应信任神经元所学到的东西——其自然稀疏性、激活范围等等。而这正是我过去大体上不相信的！我有些反对试图对所有神经元做标准化。分位数如今更常见，我想是因为更好想。反过来也成立。例如，看泰坦尼克神经元的「无关任务」时，它常常在检测「boat」即将出现。工具漏掉了这一点，因为它在判断上下文时只向后看。当我们深入看这些「无关任务」时，几乎总是这类情况。构建不完美的工具很容易。总体而言，我并不认为得出单一分数真的那么重要。但当它被拿掉时，早期审稿人感到没有哪怕一个粗略数字就失去了锚点。在我更仔细看过的集合中，若只考虑强激活，非任意混合大约接近 97%，但这些样本相对较小。总之，把一切蒸馏成一个「清晰度」分数，应被视为指向神经网络所处体制的粗略指针，而非应直接优化或死死抓住的精确量。本文的许多内容，正是为了少做一点降维，按母题、深度、角色等区别对待每个神经元与回路。尽管如此，一个粗略数字仍可能有用。</p>
+<p>其余表观多义性中的大部分，似乎是一种我称为<strong>递归泛化</strong>的母题。它很简单：随着神经元生长，它像树干长出分枝那样长出旁枝。例如，一个检测 “iy” 的神经元长到检测 “diy”，再长到 “do it yourself”——后者根本不含 “iy”。这一想法最早出现在我参与的一篇论文 <a href="https://distill.pub/2021/multimodal-neurons/">Multimodal Neurons</a>[3]（2021）中一个被遗忘的小节。当时我尚未观察训练过程中神经元如何生长。如今这更容易了，而且在我所见之处都站得住。即便原始 InceptionV1 也并非打结。当我重训其原始架构（深层仍然凌乱）并追踪我能找到的最不可读的神经元时，它们原来是在局部过度生长进合理、相邻的领地。</p>
+<p>于是，对多义性曾有两种解释，而这两种我都参与提出过。在某些方面它们相反：泛化把相似事物归在一起，叠加把无关事物归在一起。该领域押注的是叠加，直到最近我也是如此。但我现在认为递归泛化基本上是对的。归根结底只剩一种学习原则。它仍然是泛化，只是泛化原来是分形的。这远不那么令人担忧：从事物被归组的方式中有东西可学，而从叠加中的两项里几乎学不到什么。而且既然泛化本身是分形的，我们的解释也可以是分形的：从基本解释开始，想理解更多时再放大。就此意义而言，只要看得够仔细——尤其是若我们观察它在训练中如何生长——几乎整个网络都可解释。</p>
+<p>为何差距如此之大？我认为若干平常问题叠加在一起。2023 年的解释模型无法运行「猜想—检验」循环；工具与指标薄弱，奖励的是能模拟激活的解释，而非正确的解释，而这两者常常分离；没人知道该期待怎样的语言神经元母题，人们大体在找错误类型的东西；多数研究使用小型或简化模型。在某种意义上，那些模型确实空间不够，这使叠加成为自然解释。但空间不足的网络并不会切换学习原则；其神经元只是变得更宽，一如小型视觉模型。宽神经元一旦知道该找什么，通常很容易拆开。没有那种知识，又只有原始工具时，它们看起来就像任意混合。</p>
+<p>可解释性有一种出人意料的动量：像拼图或填字游戏，你获得的任何理解都会开始约束系统的其余部分。起初你只看一个神经元。若你不理解它，几乎没有别的东西能帮上忙：回路与归因图（attribution graph）只能用你尚不理解的其他神经元来解释一个神经元。这会使起步很难。但当地图开始填满时，进展会出奇地顺利。若你不完全理解某个神经元做什么，可以研究它连接什么、周围的生态系统，以及——在混合专家模型中——其专家专精于什么。像拼图合拢时那样，每一块都带着许多线索，结构良好且易于做实验。这就是为何「近乎空白」与「大体填满」并不是令人惊讶的位置；它们是自然的锚点。</p>
+<p>以一个追踪「当便宜的划算之选结果比昂贵替代品更好时的正义感」的神经元为例。追踪这类感受或社会线索的神经元，是我们找到的最常见类型之一。想象在对语言神经元母题一无所知、也几乎没有可倚赖的回路（因为邻近神经元几乎尚未被解释）时发现它。多数人类与代理期望神经元通过在名词上发放来检测名词——而它们大多并非如此。看这个神经元发放最强之处，你看到的是一堆看似无关的逗号。</p>
+<p>现在想象地图大体已填满。你知道许多神经元检测细微感受或社会情境，且它们往往不在承载感受的词上发放，而在标点（如逗号）上发放——模型在那里总结句子含义——或在感受对预测下文变得重要之前的那个词上发放。于是你转而阅读周围句子，并检查其转向效应（steering；调高该神经元时模型写什么），两者密切吻合。你向上游看它如何被构建、向下游看它做什么，两者都吻合。你检查其负极——什么强烈把它推向负值——并发现同一线索的细微变体，或社会情境结束的那一刻。你可以运行具体测试，例如检查它响应哪些商店品牌。其中任何一项都可能打破解释，但它们不断指向同一处。而理解这个神经元又锐化了更广的母题：在数千个细微感受与社会情境检测器之后，你开始知道下一个该期待什么——这也是地图越往后填得越快的原因之一。</p>
+<p>这对工具同样成立。当你只能看到网络的 2% 时，你无法知道工具坏在哪里；当你能看到大部分时，未解释的残余会直指工具问题。正是这样，一些同事与我发现了 SwiGLU 神经元中的双负体制（double-negative regime）——据我们所知此前无人注意，而把许多神经元混在一起的分解很可能会把它藏起来。</p>
+<p>现代神经网络的坏消息是它们极其巨大。好消息是巨大有帮助：当地图填满时，每个解释都被周围一切紧紧约束，而更大的模型学到更窄、一开始就更容易识别的神经元。</p>
+<p>就此意义而言，理解整个网络可能比只理解我们最关心的那些部分更容易。第一，在你尚未仔细研究之前，很难知道如何像神经网络那样思考。例如，「欺骗」是有用的初始框架，但促成模型欺骗行为的构件，很可能具有与对齐相关的微观结构，不进去看就很难知道。第二，瞄准一小套机制，就像在一张其余空白的填字游戏上只做一行。可行，也许能成，但没有交叉线索就很难知道自己是否正确。也许更容易把整盘解开——或至少解开这些机制所连接的更广部分。</p>
+<p>当我把这一过程用在现代卷积网络上时，它基本上奏效了。代理可以绘制神经元与回路、构建可探索的显微镜并加以探索、彻底检验解释，并追踪数十万条归因图。从未出现快速常规科学崩溃的时刻。我现在感到自己基本上理解了这些模型，至少足以知道对我有的任何问题该从何处问起；最终，填字游戏就被填满了。到目前为止，它在语言模型上也奏效，直至万亿参数。那些因体量巨大远未解决，但我对扩展这一过程持乐观态度。</p>
+<p>凡此种种，把我带回一个旧日希望：直接理解神经网络——研究其机制以及在其间流动的数据，而不必先试图修复或解结它。合在一起，论证有四步。</p>
+<ol>
+<li>
+<p>网络使用一种学习原则，而非两种（即便并非处处如此，也几乎足以使这对研究无关紧要），因此没有障碍去开始对它们做平常科学。</p>
+</li>
+<li>
+<p>有了现代模型与工具，这门科学进展远好于多数人的预期。</p>
+</li>
+<li>
+<p>理解会复利，因此当地图填满时会变得更容易。至少，网络自身的机制应成为工具箱的一部分。</p>
+</li>
+<li>
+<p>高度推测性的一点：这可能就是我们所需的大部分，而可解释性可能远比我们假设的更易处理——或许就在近期。</p>
+</li>
+</ol>
+<p>这正是深度学习总体的模式：在荒谬规模上做简单之事，胜过巧妙之事。Rich Sutton 称之为<a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">苦涩的教训</a>[22]（the bitter lesson）。或许可解释性也有一条苦涩的教训：扩展平常的调查，胜过工程出一种巧妙的新分解。</p>
+<p>一篇技术配套论文将更详细记述语言模型神经元实验，例如我们发现的现代非线性之不同体制，以及不同深度出现的回路母题类型。本文则扫视许多地方，并猜想这一切可能指向何处。</p>
+<h2 id="汽车与动物">汽车与动物</h2>
+<p>最著名的多义神经元是 InceptionV1 的 4e:55，它看起来像猫与汽车的任意混合。从 2017 年的 <a href="https://distill.pub/2017/feature-visualization/">Feature Visualization</a>[1] 到 <a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a>[4]，该领域若干流传最广的论文都把它当作「神经元或许不是正确研究单位」的证据。在我共同撰写的 <a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a> 中，我们直言它「并不是在响应汽车与猫脸的某种共性」。²</p>
+<p>² 在 Multimodal Neurons 中我们几乎说到了。我们问过该神经元是否可能在响应某种共享特征，「也许猫眼与车灯看起来相似」，随后根据特征可视化中的胡须与镀铬断定它是「真正的 OR(猫, 汽车)」。我们找共享形状是对的，但我认为我们低估了泛化能走多远。共享特征是 V 形。我认为胡须误导了我们，因为泛化发生在高层模式内部。V 神经元确实接入猫的回路，而特征可视化的工作是抬高激活，因此一旦找到猫的路径，就会加上该路径带来的一切。胡须便顺路而来，即便神经元并不「想要」它们。下游，汽车读取者确实会通过 V 神经元得到一点猫信号，但它几乎到不了输出：单个猫检测器发放本身作用很小，因为许多检测器协同工作，所以网络从不需要负权重去抵消它。要看到共享模式，必须可视化该神经元输入之间的共性，而非单独可视化该神经元。</p>
+<p>在数月看到清晰神经元之后，我开始怀疑我们是否误读了早期若干突出的多义性与叠加例子。典范多义神经元似乎是显然该复查之处，于是我打开了见过数百次的猫与汽车图像网格，并做了一件从未做过的事：花几秒钟想，这会不会就是「一件事」。几乎立刻就很明显：这不是猫与汽车神经元，而是 <strong>V 形神经元</strong>。</p>
+<p>我看了它的回路连接：V 形火焰、消防船喷出的 V 形水柱、V 形狐狸脸。我看了它的负极：一个 O，在 V 尖锐之处呈圆形。为何猫与汽车的任意混合需要与火焰如此强地连接？</p>
+<div class="zh-fig zh-fig-rich" id="zh-v-figure">
+<figure class="vx" id="v-figure" aria-label="The cat–car neuron 4e:55, seen through its own receptive field: pointed shapes drive it, round shapes push it negative">
+<style>
+#v-figure.vx{--vx-warm:#c9772c;--vx-cool:#4f82ad;--vx-ink:#34444b;--vx-muted:#7c878d;
+  width:auto;max-width:none;margin:30px 0 34px;padding:0;border:0;left:auto;transform:none;font-family:var(--sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif)}
+#v-figure.vx *{box-sizing:border-box}
+#v-figure.vx .vx-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 34px}
+#v-figure.vx .vx-pole{min-width:0}
+#v-figure.vx .vx-head{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+#v-figure.vx .vx-head img{display:block;flex:none;width:76px;height:76px;max-width:none;margin:0;padding:0;border:0}
+#v-figure.vx .vx-next{margin-left:auto;display:flex;align-items:center;gap:4px;font:11px/1.25 var(--sans,sans-serif);color:var(--vx-muted);text-align:right}
+#v-figure.vx .vx-next img{width:44px;height:44px}
+#v-figure.vx .vx-head b{display:block;font:600 14px/1.25 var(--sans,sans-serif);color:var(--vx-ink)}
+#v-figure.vx .vx-head small{display:block;font:12px/1.35 var(--sans,sans-serif);color:var(--vx-warm)}
+#v-figure.vx .vx-neg .vx-head small{color:var(--vx-cool)}
+#v-figure.vx ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}
+#v-figure.vx .vx-cell{margin:0;padding:0;min-width:0;text-align:center}
+#v-figure.vx .vx-t{position:relative;display:block;width:100%;aspect-ratio:1;margin:0;padding:0;border:0;cursor:pointer;
+  background:#eeeeec;overflow:hidden;border-radius:50%;isolation:isolate;-webkit-mask-image:-webkit-radial-gradient(white,black);
+  transition:border-radius .9s cubic-bezier(.45,0,.2,1)}
+#v-figure.vx .stagger .vx-t{transition-delay:calc(var(--i)*60ms)}
+#v-figure.vx .vx-t img{position:absolute;left:0;top:0;width:100%;height:100%;max-width:none;margin:0;padding:0;border:0;display:block;
+  transform-origin:0 0;transform:translate(50%,50%) rotate(var(--rot,0deg)) translate(-50%,-50%) translate(var(--zx),var(--zy)) scale(3);
+  transition:transform .9s cubic-bezier(.45,0,.2,1);transition-delay:inherit}
+#v-figure.vx .vx-ring{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%;pointer-events:none;
+  border:2px solid var(--vx-warm);transform-origin:0 0;transform:translate(0,0) scale(1);box-shadow:0 0 0 400px rgba(255,255,255,0);
+  transition:transform .9s cubic-bezier(.45,0,.2,1),box-shadow .9s,border-width .9s;transition-delay:inherit}
+#v-figure.vx .vx-neg .vx-ring{border-color:var(--vx-cool)}
+#v-figure.vx .vx-l{display:block;margin-top:4px;font:12px/1.3 var(--sans,sans-serif);color:var(--vx-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v-figure.vx .vx-t:focus-visible{outline:2px solid var(--accent,#28627b);outline-offset:2px}
+/* whole-photo view: the model's 224 px input, with the unit's window ringed */
+#v-figure.vx .whole .vx-t,#v-figure.vx .vx-t.alt{border-radius:4px}
+#v-figure.vx .whole .vx-t img,#v-figure.vx .vx-t.alt img{transform:translate(50%,50%) rotate(0deg) translate(-50%,-50%) translate(-25%,-25%) scale(1.5)}
+#v-figure.vx .whole .vx-ring,#v-figure.vx .vx-t.alt .vx-ring{transform:translate(var(--rx),var(--ry)) scale(.5);border-width:3px;box-shadow:0 0 0 400px rgba(255,255,255,.5)}
+#v-figure.vx .whole .vx-t.alt{border-radius:50%}
+#v-figure.vx .whole .vx-t.alt img{transform:translate(50%,50%) rotate(var(--rot,0deg)) translate(-50%,-50%) translate(var(--zx),var(--zy)) scale(3)}
+#v-figure.vx .whole .vx-t.alt .vx-ring{transform:translate(0,0) scale(1);border-width:2px;box-shadow:0 0 0 400px rgba(255,255,255,0)}
+#v-figure.vx .vx-foot{display:flex;justify-content:flex-end;margin-top:8px}
+#v-figure.vx .vx-toggle{display:inline;border:0;border-bottom:1px solid #c9d4d9;background:none;margin:0 0 0 2px;padding:0;font:inherit;color:var(--accent,#28627b);cursor:pointer;white-space:nowrap}
+#v-figure.vx .vx-toggle:hover{color:var(--accent,#28627b)}
+#v-figure.vx figcaption{margin:8px 0 0;max-width:none;text-align:left;font:13px/1.5 var(--sans,sans-serif);color:#717a80}
+@media (prefers-reduced-motion:reduce){#v-figure.vx .vx-t,#v-figure.vx .vx-t img,#v-figure.vx .vx-ring{transition:none}}
+#v-figure.vx{--vx-b:70px;--vx-p:70px}
+#v-figure.vx .vx-circ{position:relative;display:grid;grid-template-columns:auto auto auto;justify-content:space-between;align-items:center;margin:0 0 12px}
+#v-figure.vx .vx-col{position:relative;z-index:1;display:grid;gap:5px;min-width:0}
+#v-figure.vx .vx-colh{position:absolute;top:-3px;font:12px/1.2 var(--sans,sans-serif);color:var(--vx-muted);white-space:nowrap}
+#v-figure.vx .vx-in .vx-colh{left:calc(2 * var(--vx-b) + 18px)}
+#v-figure.vx .vx-out .vx-colh{right:calc(2 * var(--vx-b) + 18px)}
+#v-figure.vx .vx-mid .vx-colh{position:static;font:13px/1.2 var(--mono,ui-monospace,monospace);text-align:center;color:var(--vx-ink)}
+#v-figure.vx .vx-node{display:grid;gap:2px}
+#v-figure.vx .vx-imgs{display:flex;align-items:center;gap:3px}
+#v-figure.vx .vx-out .vx-imgs{justify-content:flex-end}
+#v-figure.vx .vx-node img{display:block;max-width:none;margin:0;padding:0;border:0}
+#v-figure.vx .vx-cw{position:relative;display:block;flex:none;width:var(--vx-b);height:var(--vx-b);margin:0;padding:0;border:0;border-radius:50%;overflow:hidden;background:#eee;cursor:pointer}
+#v-figure.vx .vx-c{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;transition:opacity .35s}
+#v-figure.vx .vx-c{opacity:0}
+#v-figure.vx .vx-c.on{opacity:1}
+#v-figure.vx .vx-cw:focus-visible{outline:2px solid var(--accent,#28627b);outline-offset:2px}
+#v-figure.vx .vx-f{flex:none;width:calc(var(--vx-b) + 6px);height:calc(var(--vx-b) + 6px)}
+#v-figure.vx .vx-cap{font:13px/1.2 var(--sans,sans-serif);color:var(--vx-muted);white-space:nowrap}
+#v-figure.vx .vx-out .vx-cap{text-align:right}
+#v-figure.vx .vx-id{font:13px/1.3 var(--mono,ui-monospace,monospace);color:var(--vx-ink);margin-right:3px}
+#v-figure.vx .vx-mid{gap:12px;justify-items:center}
+#v-figure.vx .vx-pair{display:flex;align-items:flex-start;gap:2px}
+#v-figure.vx .vx-pv{display:block;text-align:center}
+#v-figure.vx .vx-pv img{display:block;width:var(--vx-p);height:var(--vx-p);max-width:none;margin:0;padding:0;border:0}
+#v-figure.vx .vx-pv b{display:block;font:600 13px/1.25 var(--sans,sans-serif);color:var(--vx-ink);margin-top:1px}
+#v-figure.vx .vx-pv i{display:block;font:italic 13px/1.25 var(--sans,sans-serif);color:var(--vx-muted);margin-top:1px}
+#v-figure.vx .vx-pp b{color:var(--vx-warm)}
+#v-figure.vx .vx-pn b{color:var(--vx-cool)}
+#v-figure.vx .vx-arrow{align-self:center;margin-top:-16px;font:14px/1 var(--sans,sans-serif);color:#aab4b9}
+#v-figure.vx .vx-wires{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+#v-figure.vx .vx-wires path{fill:none;stroke:var(--vx-warm);stroke-linecap:round;opacity:.55}
+#v-figure.vx .vx-ph{font:13px/1.3 var(--sans,sans-serif);color:var(--vx-muted);margin:0 0 6px}
+#v-figure.vx .vx-ph b{font-weight:600;font-size:14px;color:var(--vx-warm);margin-right:4px}
+#v-figure.vx .vx-neg .vx-ph b{color:var(--vx-cool)}
+/* the photo grid: two halves of 3x2 circles, 80 px */
+#v-figure.vx .vx-rows{grid-template-columns:repeat(2,auto);justify-content:space-between;gap:0 24px}
+#v-figure.vx ol{grid-template-columns:repeat(3,76px);gap:2px 18px}
+@media (max-width:600px){
+  #v-figure.vx{--vx-b:84px;--vx-p:64px}
+  #v-figure.vx .vx-rows{grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch;gap:0 16px}
+  #v-figure.vx ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 8px}
+  #v-figure.vx .vx-l{font-size:11.5px;margin-top:3px}
+  #v-figure.vx .vx-ph{font-size:12px} #v-figure.vx .vx-ph b{font-size:13px}
+  #v-figure.vx figcaption{font-size:12.5px}
+  #v-figure.vx .vx-circ{grid-template-columns:minmax(0,1fr);row-gap:40px;margin-bottom:24px}
+  #v-figure.vx .vx-col{grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);justify-items:center;align-items:start;gap:4px}
+  #v-figure.vx .vx-colh{display:none}
+  #v-figure.vx .vx-node{justify-items:center}
+  #v-figure.vx .vx-in .vx-node{display:flex;flex-direction:column-reverse;align-items:center;gap:3px}
+  #v-figure.vx .vx-imgs{flex-direction:column;gap:3px}
+  #v-figure.vx .vx-cap{text-align:center!important;white-space:normal;line-height:1.25;font-size:12.5px}
+  #v-figure.vx .vx-id{display:block;margin:0;font-size:13px}
+  #v-figure.vx .vx-f{width:var(--vx-b);height:var(--vx-b)}
+  #v-figure.vx .vx-mid{grid-auto-flow:column;gap:22px}
+}
+/* hover: the image under the pointer grows a little */
+@media (hover:hover){
+#v-figure.vx .vx-t{transition:border-radius .9s cubic-bezier(.45,0,.2,1),transform .18s ease-out}
+#v-figure.vx .stagger .vx-t{transition-delay:calc(var(--i)*60ms),0s}
+#v-figure.vx .vx-cw,#v-figure.vx .vx-f,#v-figure.vx .vx-pv img{position:relative;transition:transform .18s ease-out}
+#v-figure.vx .vx-t:hover{transform:scale(1.12);z-index:3}
+#v-figure.vx .vx-cw:hover,#v-figure.vx .vx-f:hover,#v-figure.vx .vx-pv img:hover{transform:scale(1.3);z-index:3}
+}
+</style>
+<div class="vx-circ"><div class="vx-col vx-in"><span class="vx-colh">输入</span><div class="vx-node" data-w="0.321" title="4d:493 · pointed snouts · 32% of its drive"><div class="vx-imgs"><button type="button" class="vx-cw" aria-label="4d:493 example: red fox. Press for another example." data-labs="fox snout|fox snout" data-alts="red fox|kit fox"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d493a.webp" alt="red fox" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d493b.webp" alt="" width="288" height="288" loading="lazy"></button><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-4d493.webp" alt="Feature visualization of 4d:493: pointed snouts" width="240" height="240" loading="lazy"></div><div class="vx-cap"><span class="vx-id">4d:493</span> <span class="vx-what">fox snout</span></div></div><div class="vx-node" data-w="0.031" title="4d:477 · pointy-eared faces · 3% of its drive"><div class="vx-imgs"><button type="button" class="vx-cw" aria-label="4d:477 example: white wolf. Press for another example." data-labs="wolf face|dog face" data-alts="white wolf|Pomeranian"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d477w.webp" alt="white wolf" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d477c.webp" alt="" width="288" height="288" loading="lazy"></button><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-4d477.webp" alt="Feature visualization of 4d:477: pointy-eared faces" width="240" height="240" loading="lazy"></div><div class="vx-cap"><span class="vx-id">4d:477</span> <span class="vx-what">wolf face</span></div></div><div class="vx-node" data-w="0.029" title="4d:201 · vehicle fronts · 3% of its drive"><div class="vx-imgs"><button type="button" class="vx-cw" aria-label="4d:201 example: van, head-on. Press for another example." data-labs="van front|truck front" data-alts="van, head-on|pickup, head-on"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d201d.webp" alt="van, head-on" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c4d201c.webp" alt="" width="288" height="288" loading="lazy"></button><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-4d201.webp" alt="Feature visualization of 4d:201: vehicle fronts" width="240" height="240" loading="lazy"></div><div class="vx-cap"><span class="vx-id">4d:201</span> <span class="vx-what">van front</span></div></div></div><div class="vx-col vx-mid"><span class="vx-colh">4e:55</span><div class="vx-pair vx-pp"><span class="vx-pv"><img src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-pointed.webp" alt="Feature visualization of 4e:55: a pointed face" width="240" height="240"><b>尖状</b></span><span class="vx-arrow" aria-hidden="true">→</span><span class="vx-pv"><img src="https://already-clean.goodfire.com/assets/v-figure-10x/gen-pointed-old.webp" alt="What the cat, car and fox groups share, optimized: pale spikes fanning from a point" width="240" height="240"><i>泛化</i></span></div><div class="vx-pair vx-pn"><span class="vx-pv"><img src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-round.webp" alt="Feature visualization of the negative side of 4e:55: a round, flat face" width="240" height="240"><b>圆状</b></span><span class="vx-arrow" aria-hidden="true">→</span><span class="vx-pv"><img src="https://already-clean.goodfire.com/assets/v-figure-10x/gen-round-old.webp" alt="The original negative visualization of 4e:55: a round, feathery ball" width="240" height="240"><i>泛化</i></span></div></div><div class="vx-col vx-out"><span class="vx-colh">读取者</span><div class="vx-node" data-w="38.3" title="5a:94 · flames, fireboat jets and fox faces · drops 38 without 4e:55"><div class="vx-imgs"><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-5a94.webp" alt="Feature visualization of 5a:94: flames, fireboat jets and fox faces" width="240" height="240" loading="lazy"><button type="button" class="vx-cw" aria-label="5a:94 example: candle flame. Press for another example." data-labs="flames|fireboat jets|fox face" data-alts="candle flame|fireboat water jets|kit fox"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a94a.webp" alt="candle flame" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a94c.webp" alt="" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a94d.webp" alt="" width="288" height="288" loading="lazy"></button></div><div class="vx-cap"><span class="vx-id">5a:94</span> <span class="vx-what">flames</span></div></div><div class="vx-node" data-w="34.1" title="5a:352 · pointed faces · drops 34 without 4e:55"><div class="vx-imgs"><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-5a352.webp" alt="Feature visualization of 5a:352: pointed faces" width="240" height="240" loading="lazy"><button type="button" class="vx-cw" aria-label="5a:352 example: coyote. Press for another example." data-labs="coyote face|lynx face" data-alts="coyote|lynx"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a352c.webp" alt="coyote" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a352d.webp" alt="" width="288" height="288" loading="lazy"></button></div><div class="vx-cap"><span class="vx-id">5a:352</span> <span class="vx-what">coyote face</span></div></div><div class="vx-node" data-w="22.1" title="5a:317 · long snouts and V-shaped glasses · drops 22 without 4e:55"><div class="vx-imgs"><img class="vx-f" src="https://already-clean.goodfire.com/assets/v-figure-10x/fv-5a317.webp" alt="Feature visualization of 5a:317: long snouts and V-shaped glasses" width="240" height="240" loading="lazy"><button type="button" class="vx-cw" aria-label="5a:317 example: espresso martini. Press for another example." data-labs="martini glass|collie snout" data-alts="espresso martini|collie"><img class="vx-c on" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a317d.webp" alt="espresso martini" width="288" height="288" loading="lazy"><img class="vx-c" src="https://already-clean.goodfire.com/assets/v-figure-10x/c5a317c.webp" alt="" width="288" height="288" loading="lazy"></button></div><div class="vx-cap"><span class="vx-id">5a:317</span> <span class="vx-what">martini glass</span></div></div></div><svg class="vx-wires" aria-hidden="true"></svg></div>
+<div class="vx-rows">
+<div class="vx-pole vx-pos"><div class="vx-ph"><b>尖状</b> makes it fire</div><ol><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-72.76%;--zy:-91.13%;--rx:11.38%;--ry:20.57%;--i:0" aria-label="papillon: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/p10704.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="papillon">dog</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-104.01%;--zy:-93.81%;--rx:27.00%;--ry:21.91%;--i:1" aria-label="kit fox: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/p42708.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="kit fox">fox</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-82.58%;--zy:-105.42%;--rx:16.29%;--ry:27.71%;--i:2" aria-label="tiger cat: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/p47742.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="tiger cat">cat</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-147.76%;--zy:-94.71%;--rx:48.88%;--ry:22.35%;--i:3" aria-label="pickup: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/pCarX5.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="pickup">car</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-35.26%;--zy:-56.31%;--rx:-7.37%;--ry:3.16%;--i:4" aria-label="pool table: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/pPool13.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="pool table">pool table</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-148.65%;--zy:-123.28%;--rx:49.33%;--ry:36.64%;--i:5" aria-label="Shinkansen: where 4e:55 fires. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/pTrain34.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="Shinkansen">bullet train</span></li></ol></div>
+<div class="vx-pole vx-neg"><div class="vx-ph"><b>圆状</b> pushes it negative</div><ol><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-143.29%;--zy:-71.49%;--rx:46.65%;--ry:10.75%;--i:2" aria-label="French bulldog: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n909053.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="French bulldog">dog</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-133.47%;--zy:-81.31%;--rx:41.74%;--ry:15.66%;--i:3" aria-label="bull mastiff: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n750219.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="bull mastiff">dog</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-80.79%;--zy:-67.92%;--rx:15.40%;--ry:8.96%;--i:4" aria-label="snail: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n282687.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="snail">snail</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-106.69%;--zy:-100.06%;--rx:28.34%;--ry:25.03%;--i:5" aria-label="golf ball: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n132986.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="golf ball">golf ball</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-101.33%;--zy:-98.28%;--rx:25.67%;--ry:24.14%;--i:6" aria-label="tennis ball: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n1070575.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="tennis ball">tennis ball</span></li><li class="vx-cell"><button type="button" class="vx-t" style="--zx:-95.97%;--zy:-61.67%;--rx:22.99%;--ry:5.83%;--i:7" aria-label="clock: where 4e:55 is most negative. Press to toggle the whole photo."><img src="https://already-clean.goodfire.com/assets/v-figure-10x/n1158528.webp" alt="" loading="lazy" decoding="async" width="480" height="480"><span class="vx-ring" aria-hidden="true"></span></button><span class="vx-l" title="clock">clock</span></li></ol></div>
+</div>
+<figcaption>上方为其最强输入与读取者（线宽表示强度）及泛化渲染。下方为其在每张照片中所见：尖状物驱动它，圆状物把它推向负，无论标签为何。<br><a href="https://already-clean.goodfire.com/#v-figure" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+<script>
+(()=>{const fig=document.getElementById('v-figure');if(!fig||!fig.classList.contains('vx'))return;
+const rows=fig.querySelector('.vx-rows'),btn=fig.querySelector('.vx-toggle');
+const label=()=>{btn.textContent=rows.classList.contains('whole')?'Show where it fires':'Show whole photos';};
+const set=w=>{rows.classList.add('stagger');clearTimeout(set.t);set.t=setTimeout(()=>rows.classList.remove('stagger'),1700);rows.classList.toggle('whole',w);fig.querySelectorAll('.vx-t.alt').forEach(t=>t.classList.remove('alt'));label();};
+btn.addEventListener('click',()=>set(!rows.classList.contains('whole')));
+fig.querySelectorAll('.vx-t').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('alt')));
+const circ=fig.querySelector('.vx-circ');
+const wires=()=>{if(!circ)return;const svg=circ.querySelector('.vx-wires'),R=circ.getBoundingClientRect(),hub=circ.querySelector('.vx-pp').getBoundingClientRect();
+ const vert=circ.querySelector('.vx-in').getBoundingClientRect().bottom<=circ.querySelector('.vx-mid').getBoundingClientRect().top+1;
+ const nodes=[...circ.querySelectorAll('.vx-node')],max=side=>Math.max(...nodes.filter(n=>n.closest(side)).map(n=>+n.dataset.w));let d='';
+ const mx={'.vx-in':max('.vx-in'),'.vx-out':max('.vx-out')};
+ svg.setAttribute('viewBox',`0 0 ${R.width} ${R.height}`);
+ svg.innerHTML=nodes.map(n=>{const inb=!!n.closest('.vx-in'),b=n.querySelector('.vx-f').getBoundingClientRect(),w=Math.max(1,7*n.dataset.w/mx[inb?'.vx-in':'.vx-out']);
+  let x1,y1,x2,y2,c;
+  const vertical=vert;
+  if(!vertical){if(inb){x1=b.right+2;y1=b.top+b.height/2;x2=hub.left-2;y2=hub.top+hub.height*.4;}else{x1=hub.right+2;y1=hub.top+hub.height*.4;x2=b.left-2;y2=b.top+b.height/2;}
+   const m=(x1+x2)/2;c=`M${x1-R.left},${y1-R.top} C${m-R.left},${y1-R.top} ${m-R.left},${y2-R.top} ${x2-R.left},${y2-R.top}`;}
+  else{if(inb){x1=b.left+b.width/2;y1=b.bottom+3;x2=hub.left+hub.width/2;y2=hub.top-2;}else{x1=hub.left+hub.width/2;y1=hub.bottom+2;x2=b.left+b.width/2;y2=b.top-3;}
+   const m=(y1+y2)/2;c=`M${x1-R.left},${y1-R.top} C${x1-R.left},${m-R.top} ${x2-R.left},${m-R.top} ${x2-R.left},${y2-R.top}`;}
+  return `<path d="${c}" stroke-width="${w.toFixed(2)}"><title>${n.title}</title></path>`;}).join('');};
+wires();addEventListener('resize',wires);if('ResizeObserver' in window)new ResizeObserver(wires).observe(circ);
+circ&&circ.querySelectorAll('img').forEach(i=>i.complete||i.addEventListener('load',wires,{once:true}));
+fig.querySelectorAll('.vx-cw').forEach(c=>{const lab=c.closest('.vx-node').querySelector('.vx-what'),ims=[...c.querySelectorAll('.vx-c')],
+ L=c.dataset.labs.split('|'),A=c.dataset.alts.split('|');let i=0;
+ const show=k=>{ims.forEach((m,j)=>m.classList.toggle('on',j===k));lab.textContent=L[k];};
+ c.addEventListener('click',()=>{i=(i+1)%ims.length;show(i);c.setAttribute('aria-label',c.getAttribute('aria-label').replace(/example: [^.]*\./,'example: '+A[i]+'.'));});});
+/* no scroll-in animation: the photos start zoomed and only animate when the reader toggles them */
+})();
+</script>
+</figure>
+</div>
+
+<p>随后我回到 2019 年首次发现的典范叠加回路³。V 神经元与这条回路是 <a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a>[4] 用来说明其神经元图景——即只要认真看，几乎每个神经元最终都可理解——可能「过于乐观」的两个主要例子。</p>
+<p>³ 我是在构建第一个 Circuits 界面时发现的，当时只有特征可视化与连接神经元的权重。然后我拿给 Chris Olah 看，问为什么汽车会这样进入这些狗。我们得出结论：它一定在做某种折叠，并称之为叠加。这对所见现象是直观解释，因此并未促使我们更深入工具——而那本会揭示特征可视化的奖励投机（reward hacking）及其他问题。把它放进高维空间，感觉像一个合理答案。</p>
+<p>该回路看似显示一辆汽车进入一堆无关的狗，仿佛狗是一种高维存储处，汽车可在需要时再被读回。</p>
+<p>但那并不是汽车在做的事。汽车与狗被放在一起，是因为<strong>共享姿态</strong>（shared pose）。InceptionV1 有一百多个这类泛化姿态神经元，每一个都是干净地检测跨汽车、狗及其他物体共享的某种姿态；据我所知此前无人注意到它们。更后层继续在其上构建，一直到模型末端。汽车并非被藏在晦涩之处，也没有任何东西直接读出那种组合。恰恰相反：它在继续分化为汽车专员与更细的姿态。</p>
+<p>部分原因是不知道有泛化姿态神经元，部分原因是我们用来渲染图像图标的技术——<strong>特征可视化</strong>——在更深层会被奖励投机。其意图是找到最大化该神经元的图像，但做法是梯度下降，它走最容易的路，而在 InceptionV1 中那往往意味着狗。InceptionV1 的训练数据中有很多狗，也有很多狗神经元，早期优化落入其中就再也爬不出来。若你哪怕轻微地把它偏向顶部图像所走的自然路径，其中多数是汽车，有些则既是狗又是汽车——因为共享姿态。</p>
+<div class="zh-fig zh-fig-rich" id="zh-car-circuit"><figure id="car-circuit" class="ccs">
+<style>
+/* InceptionV1 car circuit, two panels. Built by proposals/car-circuit-simple/build.py from figure_sources/superposition-circuit/data.json. */
+.ccs{--w:max(100%,min(840px,calc(100vw - 60px)));--stroke:#a3adb3;--brk:#c4cbcf;--lab:#5f6a71;--car:var(--accent);--dog:var(--orange);position:relative;width:var(--w);margin:44px 0 46px calc((100% - var(--w))/2);color:var(--ink);font-family:var(--sans)}
+.ccs *{box-sizing:border-box}
+.ccs-fit{container-type:inline-size}
+.ccs-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:56px;row-gap:30px;align-items:start}
+.ccs-panel{container-type:inline-size;min-width:0}
+.ccs-h{margin:0 0 12px;font:600 15px/1.3 var(--sans);letter-spacing:-.005em;color:var(--ink)}
+.ccs-flow{--car:78px;--th:72px;--gap:4px;--split:4px;position:relative;display:grid;grid-template-columns:var(--car) minmax(26px,1fr) calc(2*var(--th) + var(--gap)) minmax(26px,1fr) var(--car);grid-template-rows:auto var(--th) var(--split) var(--th) auto;align-items:center;max-width:430px}
+.ccs-new .ccs-flow{--split:18px}
+.ccs-car{grid-column:1;grid-row:2/5;display:block;width:var(--car);height:var(--car);border-radius:7px}
+.ccs-car.ccs-out{grid-column:5}
+.ccs-cluster{grid-column:3;grid-row:2/5;display:grid;grid-template-columns:repeat(2,var(--th));gap:var(--gap)}
+.ccs-row{grid-column:3;display:grid;grid-template-columns:repeat(2,var(--th));gap:var(--gap)}
+.ccs-row.a{grid-row:2}.ccs-row.b{grid-row:4}
+.ccs-lab{grid-column:2/5;justify-self:center;display:flex;flex-direction:column;align-items:center;width:calc(2*var(--th) + var(--gap));font:500 12.5px/1.25 var(--sans);color:var(--lab);white-space:nowrap}
+.ccs-lab.t{grid-row:1;align-self:end}.ccs-lab.b{grid-row:5;align-self:start}
+.ccs-lab.t::after,.ccs-lab.b::before{content:"";align-self:stretch;height:5px;margin:4px 3px 6px;border:1.5px solid var(--brk);border-bottom:0;border-radius:2px 2px 0 0}
+.ccs-lab.b::before{margin:6px 3px 4px;border:1.5px solid var(--brk);border-top:0;border-radius:0 0 2px 2px}
+.ccs .ccs-th{display:block;width:var(--th);height:var(--th);padding:0;border:0;border-radius:6px;background:none;cursor:pointer}
+.ccs-th img{display:block;width:100%;height:100%;border-radius:6px}
+.ccs-th:hover img,.ccs-th:focus-visible img,.ccs-th[aria-expanded="true"] img{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--ink)}
+.ccs .ccs-th:focus-visible{outline:none}
+.ccs-arrows{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.ccs-arrows .l{fill:none;stroke:var(--stroke);stroke-width:1.5;stroke-linecap:round}
+.ccs-arrows .h{fill:var(--stroke)}
+.ccs.anim .ccs-arrows .l{stroke-dasharray:var(--len) 9999px;stroke-dashoffset:var(--len)}
+.ccs.anim .ccs-arrows .h{opacity:0}
+.ccs.anim.go .ccs-arrows .l{stroke-dashoffset:0;transition:stroke-dashoffset .55s cubic-bezier(.45,0,.3,1) var(--d)}
+.ccs.anim.go .ccs-arrows .h{opacity:1;transition:opacity .15s linear calc(var(--d) + .47s)}
+.ccs-card{position:absolute;z-index:20;width:300px;max-width:calc(100% - 8px);padding:9px 9px 8px;background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.14),0 0 0 1px rgba(0,0,0,.06);font:12px/1.35 var(--sans);color:var(--ink)}
+.ccs-card[hidden]{display:none}
+.ccs-card b{font-weight:600}
+.ccs-card .id{font-family:var(--mono,ui-monospace,Menlo,monospace);font-size:11.5px;color:var(--muted);margin-right:5px}
+.ccs-card .mx{display:flex;align-items:center;gap:7px;margin:5px 0 7px;color:var(--muted)}
+.ccs-card .bar{display:flex;flex:0 0 38px;height:5px;border-radius:2px;overflow:hidden;background:#dde2e5}
+.ccs-card .bar i{height:100%}.ccs-card .bar .c{background:var(--car)}.ccs-card .bar .d{background:var(--dog)}
+.ccs-card .mx .c{color:var(--car);font-weight:600}.ccs-card .mx .d{color:var(--dog);font-weight:600}
+.ccs-card .k{margin-bottom:4px;color:var(--muted)}
+.ccs-card .g{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.ccs-card .g img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px}
+.ccs>figcaption{max-width:660px;margin:22px 0 0}
+@media print{.ccs.anim .ccs-arrows .l{stroke-dasharray:none;stroke-dashoffset:0}.ccs.anim .ccs-arrows .h{opacity:1}.ccs-card{display:none}}
+@container (max-width:600px){.ccs-panels{grid-template-columns:minmax(0,1fr);row-gap:26px}}
+@container (max-width:390px){.ccs-flow{--car:64px;--th:66px}}
+@container (max-width:330px){.ccs-flow{--car:56px;--th:60px;grid-template-columns:var(--car) minmax(20px,1fr) calc(2*var(--th) + var(--gap)) minmax(20px,1fr) var(--car)}}
+@container (max-width:290px){.ccs-flow{--car:48px;--th:52px}.ccs-lab{font-size:11.5px}}
+</style>
+<div class="ccs-fit"><div class="ccs-panels"><div class="ccs-panel ccs-old"><div class="ccs-h">我们曾以为</div><div class="ccs-flow"><img class="ccs-car ccs-in" src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4c447.png" alt="The car neuron 4c:447" title="The car neuron 4c:447" width="78" height="78"><div class="ccs-lab t">任意藏身之所</div><div class="ccs-cluster" data-g><button type="button" class="ccs-th" data-n="417" data-k="top" aria-expanded="false" aria-label="4d:417, visualized freely. Show its strongest photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4d417.png" alt="4d:417 visualized freely: a kitten" width="72" height="72" loading="lazy"></button><button type="button" class="ccs-th" data-n="167" data-k="top" aria-expanded="false" aria-label="4d:167, visualized freely. Show its strongest photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4d167.png" alt="4d:167 visualized freely: dog faces" width="72" height="72" loading="lazy"></button><button type="button" class="ccs-th" data-n="295" data-k="top" aria-expanded="false" aria-label="4d:295, visualized freely. Show its strongest photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4d295.png" alt="4d:295 visualized freely: a white dog" width="72" height="72" loading="lazy"></button><button type="button" class="ccs-th" data-n="241" data-k="top" aria-expanded="false" aria-label="4d:241, visualized freely. Show its strongest photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4d241.png" alt="4d:241 visualized freely: a curly brown dog" width="72" height="72" loading="lazy"></button></div><img class="ccs-car ccs-out" src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4c447.png" alt="A car again, later in the network" title="A car again, later in the network" width="78" height="78"><svg class="ccs-arrows" aria-hidden="true"></svg></div></div><div class="ccs-panel ccs-new"><div class="ccs-h">实际情形</div><div class="ccs-flow"><img class="ccs-car ccs-in" src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4c447.png" alt="The car neuron 4c:447" title="The car neuron 4c:447" width="78" height="78"><div class="ccs-lab t">只是汽车</div><div class="ccs-row a" data-g><button type="button" class="ccs-th" data-n="417" data-k="car" aria-expanded="false" aria-label="4d:417, visualized through the car. Show its strongest car photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/domain60_dream02/417-car.jpg" alt="4d:417 visualized through the car: a car" width="72" height="72" loading="lazy"></button><button type="button" class="ccs-th" data-n="167" data-k="car" aria-expanded="false" aria-label="4d:167, visualized through the car. Show its strongest car photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/domain60_dream02/167-car.jpg" alt="4d:167 visualized through the car: a car" width="72" height="72" loading="lazy"></button></div><div class="ccs-row b" data-g><button type="button" class="ccs-th" data-n="295" data-k="car" aria-expanded="false" aria-label="4d:295, visualized through the car. Show its strongest car photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/domain60_dream02/295-car.jpg" alt="4d:295 visualized through the car: a car" width="72" height="72" loading="lazy"></button><button type="button" class="ccs-th" data-n="241" data-k="car" aria-expanded="false" aria-label="4d:241, visualized through the car. Show its strongest car photos"><img src="https://already-clean.goodfire.com/assets/superposition-circuit/domain60_dream02/241-car.jpg" alt="4d:241 visualized through the car: a car" width="72" height="72" loading="lazy"></button></div><div class="ccs-lab b">共享的汽车与狗姿态</div><img class="ccs-car ccs-out" src="https://already-clean.goodfire.com/assets/superposition-circuit/dream02/4c447.png" alt="A car again, later in the network" title="A car again, later in the network" width="78" height="78"><svg class="ccs-arrows" aria-hidden="true"></svg></div></div></div></div>
+<div class="ccs-card" hidden></div>
+<figcaption>我们曾以为汽车藏在狗神经元中间并在稍后被读出，但我们可视化错了。通过汽车可视化时，两个是汽车神经元，两个在汽车与狗之间共享姿态。<br><a href="https://already-clean.goodfire.com/#superposition-circuit" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+<script>
+(() => {
+  const fig = document.currentScript.closest('.ccs');
+  const A = 'assets/superposition-circuit/';
+  const data = {"417":{"label":"Boxy car","mix":{"car":0.969,"dog":0.003,"other":0.028},"top":[[807815,"police van"],[39545,"ambulance"],[603754,"ambulance"],[766643,"police van"],[481047,"recreational vehicle"]],"car":[[807815,"police van"],[39545,"ambulance"],[603754,"ambulance"],[766643,"police van"],[481047,"recreational vehicle"]]},"167":{"label":"Boxy car","mix":{"car":0.97,"dog":0.016,"other":0.014},"top":[[514138,"minibus"],[713710,"minibus"],[962251,"fire engine"],[101454,"police van"],[558517,"ambulance"]],"car":[[514138,"minibus"],[713710,"minibus"],[962251,"fire engine"],[101454,"police van"],[558517,"ambulance"]]},"295":{"label":"Dog in car pose","mix":{"car":0.526,"dog":0.428,"other":0.046},"top":[[731042,"soft-coated wheaten terrier"],[723597,"limousine"],[990314,"wire-haired fox terrier"],[331188,"Bedlington terrier"],[486452,"miniature poodle"]],"car":[[723597,"limousine"],[79294,"limousine"],[863627,"recreational vehicle"],[653035,"limousine"],[466524,"beach wagon"]]},"241":{"label":"Dog and car pose","mix":{"car":0.507,"dog":0.465,"other":0.028},"top":[[62925,"briard"],[1172381,"giant schnauzer"],[25291,"Border terrier"],[1271218,"Border terrier"],[129290,"Tibetan mastiff"]],"car":[[419916,"police van"],[638335,"police van"],[427178,"convertible"],[738167,"pickup"],[601508,"minibus"]]}};
+  const card = fig.querySelector('.ccs-card');
+  const pct = x => (x > 0 && x < 0.005) ? '<1%' : Math.round(x * 100) + '%';
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Arrows: drawn from the real element boxes so they follow any layout.
+  function arrow(x0, y0, x1, y1, d) {
+    const dx = Math.max(12, (x1 - x0) * 0.55), hx = x1 - 6.5;
+    const p = document.createElementNS(NS, 'path'), h = document.createElementNS(NS, 'path');
+    p.setAttribute('class', 'l'); h.setAttribute('class', 'h');
+    p.setAttribute('d', `M${x0},${y0} C${x0 + dx},${y0} ${hx - dx},${y1} ${hx},${y1}`);
+    h.setAttribute('d', `M${x1},${y1} L${hx - 1},${y1 - 3.6} L${hx - 1},${y1 + 3.6} Z`);
+    return [p, h, d];
+  }
+  function layout() {
+    fig.querySelectorAll('.ccs-flow').forEach((flow, i) => {
+      const svg = flow.querySelector('.ccs-arrows'), F = flow.getBoundingClientRect();
+      const box = el => { const r = el.getBoundingClientRect(); return { l: r.left - F.left, r: r.right - F.left, y: (r.top + r.bottom) / 2 - F.top }; };
+      const a = box(flow.querySelector('.ccs-in')), z = box(flow.querySelector('.ccs-out'));
+      const gs = [...flow.querySelectorAll('[data-g]')].map(box);
+      const items = [...gs.map(g => arrow(a.r + 7, a.y, g.l - 6, g.y, i * .8)), ...gs.map(g => arrow(g.r + 6, g.y, z.l - 7, z.y, i * .8 + .45))];
+      svg.replaceChildren();
+      for (const [p, h, d] of items) {
+        svg.append(p, h);
+        p.style.setProperty('--len', p.getTotalLength().toFixed(1) + 'px');
+        p.style.setProperty('--d', d + 's'); h.style.setProperty('--d', d + 's');
+      }
+    });
+  }
+  layout();
+  if ('ResizeObserver' in window) new ResizeObserver(layout).observe(fig.querySelector('.ccs-fit'));
+  window.addEventListener('load', layout);
+  if (!reduce && 'IntersectionObserver' in window) {
+    fig.classList.add('anim');
+    const io = new IntersectionObserver(es => {
+      if (!es.some(e => e.isIntersecting && (e.intersectionRatio >= 0.6 || e.intersectionRect.height >= innerHeight * 0.45))) return;
+      io.disconnect();
+      requestAnimationFrame(() => requestAnimationFrame(() => fig.classList.add('go')));
+      setTimeout(() => fig.classList.remove('anim', 'go'), 2600);
+    }, { threshold: [0.2, 0.4, 0.6] });
+    io.observe(fig.querySelector('.ccs-panels'));
+  }
+
+  // Hover / focus / tap: the neuron, its top-1,000-photo mix and five photos.
+  let pinned = null, t = null;
+  function show(btn) {
+    clearTimeout(t);
+    const n = btn.dataset.n, r = data[n], k = btn.dataset.k;
+    card.innerHTML = `<div><span class="id">4d:${n}</span><b>${r.label}</b></div>`
+      + `<div class="mx"><span class="bar"><i class="c" style="width:${r.mix.car * 100}%"></i><i class="d" style="width:${r.mix.dog * 100}%"></i></span>`
+      + `<span>Top 1,000 photos: <span class="c">${pct(r.mix.car)} car</span>, <span class="d">${pct(r.mix.dog)} dog</span></span></div>`
+      + `<div class="k">${k === 'top' ? 'Strongest photos' : 'Strongest car photos'}</div>`
+      + `<div class="g">${r[k].map(([row, cls]) => `<img src="${A}circuit60/${row}.jpg" alt="${cls}" title="${cls}">`).join('')}</div>`;
+    card.hidden = false;
+    const f = fig.getBoundingClientRect(), b = btn.getBoundingClientRect(), w = card.offsetWidth;
+    card.style.left = Math.max(4, Math.min(b.left - f.left + b.width / 2 - w / 2, f.width - w - 4)) + 'px';
+    card.style.top = (b.bottom - f.top + 8) + 'px';
+  }
+  const hide = () => { if (!pinned) t = setTimeout(() => { card.hidden = true; }, 120); };
+  const unpin = () => { if (pinned) pinned.setAttribute('aria-expanded', 'false'); pinned = null; card.hidden = true; };
+  fig.querySelectorAll('.ccs-th').forEach(btn => {
+    btn.addEventListener('mouseenter', () => { if (!pinned) show(btn); });
+    btn.addEventListener('mouseleave', hide);
+    btn.addEventListener('focus', () => { if (!pinned) show(btn); });
+    btn.addEventListener('blur', hide);
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (pinned === btn) return unpin();
+      if (pinned) pinned.setAttribute('aria-expanded', 'false');
+      pinned = btn; btn.setAttribute('aria-expanded', 'true'); show(btn);
+    });
+  });
+  card.addEventListener('mouseenter', () => clearTimeout(t));
+  card.addEventListener('mouseleave', hide);
+  document.addEventListener('click', e => { if (pinned && !card.contains(e.target)) unpin(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') unpin(); });
+})();
+</script>
+</figure></div>
+
+<p>人们可能倾向于贬低这种泛化，假定狗与汽车在一起只是因为空间不够。也许它「真正想要」分开的狗姿态与汽车姿态神经元，更大、更有空间的模型会把它们分开。更大模型往往有更窄的神经元，这是真的，但网络扩展规模的方式可能反直觉。</p>
+<p>看 <a href="https://arxiv.org/abs/2304.07193">DINOv2</a>[12]——规模大十倍以上、架构晚约十年——它有更多姿态神经元，但其中许多仍然是泛化的。我看过的任何规模的视觉模型中都见过这一点。</p>
+<div class="zh-fig zh-fig-rich" id="zh-pose-everywhere"><figure id="pose-everywhere" class="pose-everywhere">
+<style>#pose-everywhere{margin:38px 0 40px}
+#pose-everywhere .pe-rows{display:grid;gap:12px}
+#pose-everywhere .pe-row{display:grid;grid-template-columns:minmax(0,1fr);align-items:center}
+#pose-everywhere .pe-name{font:13px/1.35 var(--sans);color:#4f5d64;margin:0 0 5px}
+#pose-everywhere .pe-name span{display:inline;margin-left:6px;font-size:12px;color:#8a959b}
+#pose-everywhere .pe-strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+#pose-everywhere .pe-strip img{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:2px;background:#eef1f3}
+#pose-everywhere figcaption{margin:18px 0 0;max-width:640px}
+/* wide screens: model names hang in the left margin so the photos line up with the text column */
+@media(min-width:1000px){
+ #pose-everywhere{width:calc(100% + 144px);margin-left:-144px}
+ #pose-everywhere .pe-row{grid-template-columns:132px minmax(0,1fr);gap:0 12px}
+ #pose-everywhere .pe-name{margin:0}#pose-everywhere .pe-name span{display:block;margin-left:0}
+ #pose-everywhere figcaption{margin-left:144px}
+}
+@media(max-width:600px){
+ #pose-everywhere .pe-rows{gap:14px}
+ #pose-everywhere .pe-strip{grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+ #pose-everywhere .pe-strip img:nth-child(n+7){display:none}
+}</style>
+<div class="pe-rows"><div class="pe-row"><div class="pe-name">DINOv2<span>12× InceptionV1</span></div><div class="pe-strip"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/0.webp" alt="Appenzeller" title="Appenzeller · rank 1 of 50,000 · activation 4.09" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/1.webp" alt="sports car" title="sports car · rank 12 of 50,000 · activation 3.62" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/2.webp" alt="Eskimo dog" title="Eskimo dog · rank 2 of 50,000 · activation 3.89" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/3.webp" alt="sports car" title="sports car · rank 41 of 50,000 · activation 3.37" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/4.webp" alt="Labrador retriever" title="Labrador retriever · rank 3 of 50,000 · activation 3.88" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/5.webp" alt="sports car" title="sports car · rank 46 of 50,000 · activation 3.34" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/6.webp" alt="Appenzeller" title="Appenzeller · rank 4 of 50,000 · activation 3.87" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/dino/7.webp" alt="convertible" title="convertible · rank 65 of 50,000 · activation 3.28" width="104" height="104" loading="lazy" decoding="async"></div></div><div class="pe-row"><div class="pe-name">ConvNeXt large<span>4× InceptionV1</span></div><div class="pe-strip"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/0.webp" alt="Norwegian elkhound" title="Norwegian elkhound · rank 1 of 50,000 · activation 2.78" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/1.webp" alt="garbage truck" title="garbage truck · rank 2 of 50,000 · activation 2.71" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/2.webp" alt="Brabancon griffon" title="Brabancon griffon · rank 3 of 50,000 · activation 2.67" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/3.webp" alt="fire engine" title="fire engine · rank 4 of 50,000 · activation 2.59" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/4.webp" alt="Australian terrier" title="Australian terrier · rank 6 of 50,000 · activation 2.51" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/5.webp" alt="pickup" title="pickup · rank 5 of 50,000 · activation 2.57" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/6.webp" alt="Blenheim spaniel" title="Blenheim spaniel · rank 8 of 50,000 · activation 2.44" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/large/7.webp" alt="ambulance" title="ambulance · rank 12 of 50,000 · activation 2.39" width="104" height="104" loading="lazy" decoding="async"></div></div><div class="pe-row"><div class="pe-name">ConvNeXt medium<span>1× InceptionV1</span></div><div class="pe-strip"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/0.webp" alt="Border collie" title="Border collie · rank 1 of 50,000 · activation 0.78" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/1.webp" alt="fire engine" title="fire engine · rank 9 of 50,000 · activation 0.71" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/2.webp" alt="redbone" title="redbone · rank 2 of 50,000 · activation 0.77" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/3.webp" alt="trolleybus" title="trolleybus · rank 12 of 50,000 · activation 0.69" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/4.webp" alt="flat-coated retriever" title="flat−coated retriever · rank 3 of 50,000 · activation 0.77" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/5.webp" alt="minibus" title="minibus · rank 21 of 50,000 · activation 0.66" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/6.webp" alt="Saluki" title="Saluki · rank 6 of 50,000 · activation 0.74" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/medium/7.webp" alt="moving van" title="moving van · rank 30 of 50,000 · activation 0.62" width="104" height="104" loading="lazy" decoding="async"></div></div><div class="pe-row"><div class="pe-name">ConvNeXt small<span>1/75× InceptionV1</span></div><div class="pe-strip"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/0.webp" alt="Staffordshire bullterrier" title="Staffordshire bullterrier · rank 12 of 50,000 · activation 0.55" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/1.webp" alt="pickup" title="pickup · rank 2 of 50,000 · activation 0.60" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/2.webp" alt="bull mastiff" title="bull mastiff · rank 15 of 50,000 · activation 0.55" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/3.webp" alt="sports car" title="sports car · rank 4 of 50,000 · activation 0.58" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/4.webp" alt="bull mastiff" title="bull mastiff · rank 42 of 50,000 · activation 0.52" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/5.webp" alt="limousine" title="limousine · rank 8 of 50,000 · activation 0.56" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/6.webp" alt="black-and-tan coonhound" title="black−and−tan coonhound · rank 51 of 50,000 · activation 0.51" width="104" height="104" loading="lazy" decoding="async"><img src="https://already-clean.goodfire.com/assets/pose-everywhere/small/7.webp" alt="Model T" title="Model T · rank 11 of 50,000 · activation 0.56" width="104" height="104" loading="lazy" decoding="async"></div></div></div>
+<figcaption>同一神经元出现在 DINOv2 以及我们的大型与中型 ConvNeXt 中：狗与车辆按面向相机的方式分组。我们最小的模型只有粗略版本，汽车与狗在一起，但不按姿态。<br><a href="https://already-clean.goodfire.com/#pose-everywhere" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+</figure></div>
+
+<p>人类与自动化解释者似乎都强烈偏向把神经元描述为名词组的检测器（如猫与汽车），而非共享模式（如 V）。有时神经元确实响应一组名词。但按我的经验，更常见的是共享模式，把神经元理解为动词比理解为名词更好。它的工作不是给输入中的东西命名，而是画出下游神经元可用的区分：在其正负极分离两种细微模式（V 对 O），并据此把激活流推向不同神经元。</p>
+<p>我常常这样打通对一个神经元的理解：若完全不能用名词组，我会如何向别人描述这个神经元？通常共享模式立刻浮现，也易于在更多名词组上检验（对 V：新干线、台球桌）。我怀疑这是中层神经元中被误判为多义性的最大来源。我见过的许多把神经元称为多义的解释，在我看来像是把单一模式描述成名词列表。</p>
+<p>我们应把意味着两三件事的神经元，当作一个带有若干归组含义的神经元。这种归组对网络大概不是问题：这些含义坐在一起，是因为从网络的视角看它们相似。这使归组成为网络如何思考的线索，跟随它可以发现我们不知道的泛化，正如这里的猫与汽车。常常，额外含义在更仔细查看时会融化，变成次要且很少激活的东西。最后，一些表观含义只是我们的工具不好，本文有若干例子：SwiGLU 的双负体制、使残差流难以可视化的未读显著性旋钮，以及我们刚看到的特征可视化奖励投机。保持原始神经元完整，使这些错误可见，从而错误纠正可以继续。若我们用优化去得到更干净的列表，可能会丢掉许多这些线索。</p>
+<h2 id="显微镜误差史">显微镜误差史</h2>
+<p>在我看来，可解释性的故事大体上是：不断发现显微镜下的东西比我们以为的更好。显微镜只是没调对，而需要调的往往相当微妙。</p>
+<p>现代神经网络可解释性可以说始于特征可视化：渲染神经元最强烈响应的合成图像——那些著名的迷幻图片。有一段时间它们看起来并不好看。你有理由断定神经元学到了某种东西，只是并不很干净。原来方法缺少变换鲁棒性（transformation robustness）。一旦研究者加上它，同样的神经元就变得清晰。</p>
+<p>但这只能让你深入模型到一定程度。靠近末端时，特征可视化再次开始崩溃，原因有二：我们在汽车回路中见到的奖励投机，以及不甚恰当的正则化。修复并不需要花哨的东西。对合理设置做几处微妙调整，我们现在就能看得深得多。同样的神经元，更好的显微镜。</p>
+<div class="zh-fig zh-fig-rich" id="zh-microscope-timeline"><figure id="microscope-timeline" class="microscope-timeline" aria-label="The same two InceptionV1 neurons rendered with 2009-style, 2017 and 2026 feature visualization, next to each neuron’s strongest natural photos. The 2009-style method gives static in both layers, 2017 settings render the middle-layer neuron but not the late one, and 2026 settings render both.">
+<style>
+/* The image grid spans the text column exactly; row labels hang in the left margin (above their row when there is no margin). */
+#microscope-timeline{width:auto;max-width:none;margin:30px 0;padding:0;border:0}
+#microscope-timeline .mt-grid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:center}
+#microscope-timeline .mt-corner{display:none}
+#microscope-timeline .mt-year,#microscope-timeline .mt-row,#microscope-timeline .mt-photos-head{font:500 13px/1.3 var(--sans);color:var(--muted)}
+#microscope-timeline .mt-year,#microscope-timeline .mt-photos-head{padding-bottom:1px}
+#microscope-timeline .mt-row{position:absolute;grid-column:1/2;right:calc(100% + 14px);top:50%;transform:translateY(-50%);white-space:nowrap}
+#microscope-timeline .mt-r1{grid-row:2/3}
+#microscope-timeline .mt-r2{grid-row:3/4}
+#microscope-timeline .mt-photos-head,#microscope-timeline .mt-photos{margin-left:12px}
+#microscope-timeline .mt-photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
+#microscope-timeline .mt-photos-label{display:none}
+#microscope-timeline img{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:2px}
+#microscope-timeline figcaption{font:11px/1.4 var(--sans);color:var(--muted);margin:8px 0 0;max-width:none;text-align:left}
+@media(max-width:900px){
+#microscope-timeline .mt-row{position:static;grid-column:1/-1;grid-row:auto;transform:none;margin-top:6px}
+}
+@media(max-width:720px){
+#microscope-timeline{margin:26px 0}
+#microscope-timeline .mt-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+#microscope-timeline .mt-photos-head{display:none}
+#microscope-timeline .mt-photos{grid-column:1/-1;grid-template-columns:repeat(4,minmax(0,1fr));margin:0}
+#microscope-timeline .mt-photos-label{display:block;grid-column:1/-1;font:500 11px/1.3 var(--sans);color:var(--muted);margin:1px 0 1px}
+}
+</style>
+<div class="mt-grid">
+<span class="mt-corner"></span><span class="mt-year" title="Plain gradient ascent on pixels, no regularization">2009-style</span><span class="mt-year" title="Lucid default settings">2017</span><span class="mt-year" title="Our microscope’s settings (dream02)">2026</span><span class="mt-photos-head" title="The neuron’s four strongest images in the 50k-image ImageNet scan">Strongest photos</span>
+<span class="mt-row mt-r1">Middle layer</span>
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2009-mixed4d-161.webp" width="224" height="224" loading="lazy" alt="mixed4d:161, 2009-style gradient ascent: colored static" title="mixed4d:161 · 2009-style: plain gradient ascent">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2017-mixed4d-161.webp" width="224" height="224" loading="lazy" alt="mixed4d:161, 2017 Lucid defaults: a glossy jar" title="mixed4d:161 · 2017 Lucid defaults">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2026-mixed4d-161.webp" width="224" height="224" loading="lazy" alt="mixed4d:161, 2026 settings: metal jars and canisters" title="mixed4d:161 · 2026 settings">
+<div class="mt-photos" role="group" aria-label="mixed4d:161’s strongest photos"><span class="mt-photos-label">Strongest photos</span>
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed4d-161-1.webp" width="240" height="240" loading="lazy" alt="A table lamp with a brass urn-shaped base" title="#1 · table lamp">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed4d-161-2.webp" width="240" height="240" loading="lazy" alt="An old blue water jug with a lid" title="#2 · water jug">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed4d-161-3.webp" width="240" height="240" loading="lazy" alt="Orange pill bottles with white caps" title="#3 · pill bottles">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed4d-161-4.webp" width="240" height="240" loading="lazy" alt="Glass vases and urns on a table" title="#4 · vases">
+</div>
+<span class="mt-row mt-r2">Late layer</span>
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2009-mixed5a-400.webp" width="224" height="224" loading="lazy" alt="mixed5a:400, 2009-style gradient ascent: colored static" title="mixed5a:400 · 2009-style: plain gradient ascent">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2017-mixed5a-400.webp" width="224" height="224" loading="lazy" alt="mixed5a:400, 2017 Lucid defaults: a jumble with a dog’s face" title="mixed5a:400 · 2017 Lucid defaults">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/2026-mixed5a-400.webp" width="224" height="224" loading="lazy" alt="mixed5a:400, 2026 settings: a boxy screen-like device with a round lens" title="mixed5a:400 · 2026 settings">
+<div class="mt-photos" role="group" aria-label="mixed5a:400’s strongest photos"><span class="mt-photos-label">Strongest photos</span>
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed5a-400-1.webp" width="240" height="240" loading="lazy" alt="A Brownie box camera with two round lenses" title="#1 · box camera">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed5a-400-2.webp" width="240" height="240" loading="lazy" alt="A metal lock box with a keyhole on a gate" title="#2 · lock box on a gate">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed5a-400-3.webp" width="240" height="240" loading="lazy" alt="A red vintage gas pump with a round dial" title="#3 · gas pump">
+<img src="https://already-clean.goodfire.com/assets/microscope-timeline/top-mixed5a-400-4.webp" width="240" height="240" loading="lazy" alt="A person pushing a red upright vacuum cleaner" title="#4 · upright vacuum">
+</div>
+</div>
+<figcaption>同样两个 InceptionV1 神经元，旁为其最强照片。微小的正则化调整先带出中间层神经元，再带出深层神经元。<br><a href="https://already-clean.goodfire.com/#microscope-timeline" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+</figure></div>
+
+<p>但并不全是显微镜的问题。模型也需要调。该领域早期模型生物 InceptionV1 在深层完全不可解释。<a href="https://livgorton.com/inceptionv1-mixed5b-sparse-autoencoders/">一项估计</a>写道：「据我所知，InceptionV1 最后一层基本上没有可解释的神经元。」这接近我自己的回忆，我大概会说 5%。它们看起来是这样的。</p>
+<div class="zh-fig zh-fig-rich" id="zh-inception-last-layer"><figure id="inception-last-layer" class="wide inception-last-layer" aria-label="An InceptionV1 late-layer neuron: two optimized views and ten natural images of striped fabrics">
+<div class="ill-strip">
+<span class="ill-lab ill-lab-fv">特征可视化</span><span class="ill-lab ill-lab-data">数据集例子</span>
+<svg class="ill-fv" viewBox="25 21 480 478" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Neuron objective"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg class="ill-fv" viewBox="629 21 478 478" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Channel objective"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<div class="ill-data">
+<svg viewBox="629 576 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 1"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="871 576 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 2"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1114 576 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 3"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1357 576 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 4"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1599 576 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 5"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="629 819 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 6"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="871 819 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 7"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1114 819 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 8"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1357 819 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 9"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+<svg viewBox="1599 819 235 235" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Dataset example 10"><image href="https://already-clean.goodfire.com/assets/september-revision/inception-last-layer.webp" width="1858" height="1136"/></svg>
+</div>
+</div>
+<figcaption>一个深层 InceptionV1 神经元，以优化视图与自然图像展示。<br><a href="https://already-clean.goodfire.com/#inception-last-layer" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+
+</figure></div>
+
+<p>就我所知，主流解释是：需要表示的高层特征相对神经元与参数数量太多，于是它开始任意打包本不该在一起的东西，因为它们不碰撞。早期层是单义的（monosemantic），因为需要表示的早期特征没那么多。</p>
+<p>但这不是正确解释。这里是一个更现代的卷积网络，参数量与数据集相同，但有残差连接、LayerNorm 及其他若干改进。最后一层很美。</p>
+<div class="zh-fig zh-fig-rich" id="zh-ladybug-figure"><figure class="lbx-figure lbx-examples" id="ladybug-figure" data-last-layer-gallery aria-label="Last-layer neurons and their 20 strongest natural-image responses">
+<div class="lln-models" role="group" aria-label="Choose model"><button type="button" data-model="matched" disabled aria-pressed="true">7.06M · parameter-matched</button><button type="button" data-model="large" disabled aria-pressed="false">28.6M</button></div>
+<div class="lln-strip"><button type="button" class="lln-arrow" data-dir="-1" aria-label="Earlier neurons" disabled>‹</button><div class="lln-selector" role="group" aria-label="Choose a last-layer neuron"><button class="lln-choice" type="button" data-neuron="127" disabled aria-pressed="true" aria-label="Ladybugs, neuron 127; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0127.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Ladybugs</span></button><button class="lln-choice" type="button" data-neuron="0" disabled aria-pressed="false" aria-label="Terriers, neuron 0; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0000.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Terriers</span></button><button class="lln-choice" type="button" data-neuron="37" disabled aria-pressed="false" aria-label="Platypus, neuron 37; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0037.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Platypus</span></button><button class="lln-choice" type="button" data-neuron="73" disabled aria-pressed="false" aria-label="Milk cans, neuron 73; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0073.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Milk cans</span></button><button class="lln-choice" type="button" data-neuron="146" disabled aria-pressed="false" aria-label="Yellow on green, neuron 146; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0146.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Yellow on green</span></button><button class="lln-choice" type="button" data-neuron="183" disabled aria-pressed="false" aria-label="Altars, neuron 183; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0183.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Altars</span></button><button class="lln-choice" type="button" data-neuron="219" disabled aria-pressed="false" aria-label="Acorn squash, neuron 219; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0219.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Acorn squash</span></button><button class="lln-choice" type="button" data-neuron="256" disabled aria-pressed="false" aria-label="Crocodiles, neuron 256; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0256.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Crocodiles</span></button><button class="lln-choice" type="button" data-neuron="292" disabled aria-pressed="false" aria-label="Grand façades, neuron 292; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0292.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Grand façades</span></button><button class="lln-choice" type="button" data-neuron="329" disabled aria-pressed="false" aria-label="Marmosets, neuron 329; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0329.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Marmosets</span></button><button class="lln-choice" type="button" data-neuron="365" disabled aria-pressed="false" aria-label="Tape players, neuron 365; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0365.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Tape players</span></button><button class="lln-choice" type="button" data-neuron="438" disabled aria-pressed="false" aria-label="Rabbits, neuron 438; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0438.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Rabbits</span></button><button class="lln-choice" type="button" data-neuron="512" disabled aria-pressed="false" aria-label="Warthogs, neuron 512; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0512.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Warthogs</span></button><button class="lln-choice" type="button" data-neuron="548" disabled aria-pressed="false" aria-label="Lacewings, neuron 548; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0548.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Lacewings</span></button><button class="lln-choice" type="button" data-neuron="585" disabled aria-pressed="false" aria-label="Stinkhorns, neuron 585; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0585.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Stinkhorns</span></button><button class="lln-choice" type="button" data-neuron="731" disabled aria-pressed="false" aria-label="Half-tracks, neuron 731; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0731.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Half-tracks</span></button><button class="lln-choice" type="button" data-neuron="877" disabled aria-pressed="false" aria-label="Poodles, neuron 877; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0877.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Poodles</span></button><button class="lln-choice" type="button" data-neuron="950" disabled aria-pressed="false" aria-label="Catamarans, neuron 950; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0950.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Catamarans</span></button><button class="lln-choice" type="button" data-neuron="1023" disabled aria-pressed="false" aria-label="Curled horns, neuron 1023; preview of its feature visualization; show its 20 strongest responses"><span class="lln-preview" aria-hidden="true"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-1023.jpg" alt="" width="56" height="56" loading="lazy"></span><span class="lln-name">Curled horns</span></button></div><button type="button" class="lln-arrow" data-dir="1" aria-label="More neurons">›</button></div>
+<div class="lln-selected-row"><p data-lln-selected>Ladybugs · Neuron 127</p><span data-lln-hint hidden>Hover to explore · click to keep</span><button type="button" data-lln-unpin hidden>Release</button></div>
+<div class="lbx-gallery"><a class="lbx-fv" href="microscope/medium.html?layer=stage3.block2&amp;neuron=127&amp;heat=0" target="_blank" rel="noopener"><img src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/fv-0127.jpg" alt="Archived positive feature visualization for neuron 127" width="96" height="96"><span>Feature visualization<br>Open neuron ↗</span></a><div class="lbx-grid"><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-41574-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 1; ladybug; activation 42.5; image 41574"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-41574-x32-y32.jpg" alt="Rank 1: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-46370-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 2; ladybug; activation 39.5; image 46370"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-46370-x32-y32.jpg" alt="Rank 2: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-22108-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 3; ladybug; activation 38.5; image 22108"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-22108-x32-y32.jpg" alt="Rank 3: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-47708-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 4; ladybug; activation 35.25; image 47708"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-47708-x32-y32.jpg" alt="Rank 4: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-28794-x32-y64.jpg" target="_blank" rel="noopener" title="Rank 5; leaf beetle; activation 34.75; image 28794"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-28794-x32-y64.jpg" alt="Rank 5: leaf beetle" width="96" height="96"><span class="lbx-class">leaf beetle</span></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-10805-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 6; ladybug; activation 33.5; image 10805"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-10805-x32-y00.jpg" alt="Rank 6: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-04173-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 7; ladybug; activation 33.25; image 4173"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-04173-x32-y32.jpg" alt="Rank 7: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-05390-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 8; ladybug; activation 33.25; image 5390"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-05390-x32-y00.jpg" alt="Rank 8: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-48422-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 9; ladybug; activation 31.75; image 48422"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-48422-x32-y32.jpg" alt="Rank 9: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-38007-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 10; ladybug; activation 31.25; image 38007"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-38007-x32-y32.jpg" alt="Rank 10: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-43091-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 11; ladybug; activation 30.875; image 43091"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-43091-x32-y00.jpg" alt="Rank 11: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-23690-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 12; ladybug; activation 30.25; image 23690"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-23690-x32-y00.jpg" alt="Rank 12: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-43064-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 13; ladybug; activation 29.625; image 43064"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-43064-x32-y32.jpg" alt="Rank 13: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-37985-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 14; leaf beetle; activation 28.125; image 37985"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-37985-x32-y00.jpg" alt="Rank 14: leaf beetle" width="96" height="96"><span class="lbx-class">leaf beetle</span></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-47002-x32-y00.jpg" target="_blank" rel="noopener" title="Rank 15; ladybug; activation 28.125; image 47002"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-47002-x32-y00.jpg" alt="Rank 15: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-21789-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 16; ladybug; activation 27.875; image 21789"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-21789-x32-y32.jpg" alt="Rank 16: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-02651-x32-y64.jpg" target="_blank" rel="noopener" title="Rank 17; leaf beetle; activation 27.75; image 2651"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-02651-x32-y64.jpg" alt="Rank 17: leaf beetle" width="96" height="96"><span class="lbx-class">leaf beetle</span></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-20958-x00-y00.jpg" target="_blank" rel="noopener" title="Rank 18; ladybug; activation 27.625; image 20958"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-20958-x00-y00.jpg" alt="Rank 18: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-37284-x64-y00.jpg" target="_blank" rel="noopener" title="Rank 19; ladybug; activation 27.625; image 37284"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-37284-x64-y00.jpg" alt="Rank 19: ladybug" width="96" height="96"></a><a class="lbx-tile" href="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-13042-x32-y32.jpg" target="_blank" rel="noopener" title="Rank 20; ladybug; activation 27.25; image 13042"><img loading="lazy" src="https://already-clean.goodfire.com/assets/last-layer-neurons/medium/images/img-13042-x32-y32.jpg" alt="Rank 20: ladybug" width="96" height="96"></a></div></div>
+<figcaption data-lln-caption>Each neuron’s 20 strongest responses out of 50,000 images, in order. Labels mark images from other classes.</figcaption>
+<span class="lln-live" data-lln-live aria-live="polite" aria-atomic="true"></span>
+</figure></div>
+
+<p>因此需要两件事。第一，神经网络需要学得好，使用由完全专注于该目标、对可解释性毫无兴趣的人设计的架构。残差流（residual stream）是一例：它被引入是为了帮助学习更深的网络，似乎也有助于使更深的层在概念上清晰，这或许相关。第二，我们需要足够强的工具才能看清它们。</p>
+<p>InceptionV1 的最后一层是「神经网络几乎从根本上不可解释、因其学习方式重叠无关混合」的主要证据之一。替换神经元似乎是唯一选项。用那个时代的工具，我把它估在约 5%，其他人约 0%。有了更好的可解释性工具（修复后的特征可视化、可视化归因等方法），在同一网络上大约是 50%。这一切都基于 2014 年那个检查点与训练细节已佚失的模型。以更合理的现代正则化重训同一架构，大约是 70%。同等规模的 ConvNeXt 上约 99%。它们可在此<a href="microscope/medium.html">探索</a>。</p>
+<h2 id="递归泛化">递归泛化</h2>
+<div class="demo-block"><p class="demo-note">交互示意（本地镜像）：“iy” 神经元的递归生长。完整互动以原文为准。</p><style>
+/* ---- Figure ---- */
+  .rg-fig {
+    --rg-ink: #1f2328;
+    --rg-muted: #7a808a;
+    --rg-teal: #3a9e9a;
+    --rg-orange: #e57548;
+
+    max-width: 580px;
+    margin: 30px auto 36px;
+    color: var(--rg-ink);
+    font-family: var(--sans);
+  }
+
+  .rg-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto;
+    overflow: visible;
+  }
+  .rg-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--rg-muted);
+  }
+  .rg-foot b { color: var(--rg-ink); font-weight: 600; }
+  .rg-replay {
+    flex: none;
+    font: inherit;
+    color: var(--rg-muted);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .rg-replay:hover { color: var(--rg-ink); }
+  .rg-replay:focus-visible { outline: 2px solid var(--rg-teal); outline-offset: 3px; border-radius: 2px; }
+
+  /* SVG */
+  .rg-teal { fill: var(--rg-teal); }
+  .rg-orange { fill: var(--rg-orange); }
+  .rg-stop-teal { stop-color: var(--rg-teal); }
+  .rg-stop-orange { stop-color: var(--rg-orange); }
+  .rg-lab {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    fill: var(--rg-ink);
+  }
+  .rg-lab .rg-hl { fill: var(--rg-teal); font-weight: 600; }
+  .rg-lab.rg-off { fill: var(--rg-orange); }
+  .rg-note { font-size: 11.5px; fill: var(--rg-muted); }
+</style>
+<figure class="rg-fig" id="recursive-generalization">
+  <svg class="rg-svg" role="img"
+       aria-label="A neuron for the letters iy grows branches in several directions, including Miyazaki and diy. From diy, a small offshoot grows to do it yourself, which shares diy's meaning but no longer contains iy."></svg>
+  <figcaption class="rg-foot">
+    <span><b>递归泛化（recursive generalization）。</b>一个 “iy” 神经元沿若干方向生长。从 “diy” 到达 “do it yourself”，后者已不含 “iy”。概念示意。</span>
+    <button class="rg-replay" type="button">重放 ↻</button>
+  </figcaption>
+</figure>
+<script>
+(() => {
+  const fig = document.getElementById('recursive-generalization');
+  const svg = fig.querySelector('.rg-svg');
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Geometry per layout.
+  //   branches: grow out of the soma; t is [start, end] in ms.
+  //   twigs:    grow off a parent branch once its tip passes `at`.
+  //   offshoot: sprouts from the tip of the diy branch after it finishes.
+  const LAYOUTS = {
+    wide: {
+      vb: [52, 12, 530, 188],
+      soma: { x: 250, y: 118, r: 15 },
+      branches: [
+        { id: 'miy', d: 'M237 107 C217 83 187 62 146 53',   w: [5.5, 1.8], t: [350, 1550] },
+        { id: 'diy', d: 'M273 115 C318 109 365 96 416 96',  w: [5.5, 1.8], t: [450, 1750] },
+        { id: 'up',  d: 'M254 97 C253 71 260 46 276 23',    w: [4.8, 1.5], t: [400, 1450] },
+        { id: 'dl',  d: 'M233 132 C208 155 178 173 136 178', w: [5, 1.6], t: [500, 1800] },
+        { id: 'dr',  d: 'M266 137 C290 161 321 178 359 184', w: [5, 1.6], t: [550, 1900] },
+      ],
+      twigs: [
+        { parent: 'dl', at: 0.55, w: [2.4, 1.2], dur: 700, d: P => `M${P.x} ${P.y} C${P.x - 3} ${P.y + 12} ${P.x - 1} ${P.y + 20} ${P.x + 4} ${P.y + 29}` },
+        { parent: 'up', at: 0.6,  w: [2.2, 1.1], dur: 650, d: P => `M${P.x} ${P.y} C${P.x + 12} ${P.y - 1} ${P.x + 20} ${P.y + 1} ${P.x + 30} ${P.y + 7}` },
+      ],
+      offshoot: { w: [1.8, 1.1], d: D => `M${D.x} ${D.y} C${D.x + 9} ${D.y - 11} ${D.x + 17} ${D.y - 19} ${D.x + 30} ${D.y - 23}` },
+      place: {
+        soma: { dx: -24, dy: 4,  anchor: 'end' },
+        miy:  { dx: -9,  dy: 4,  anchor: 'end' },
+        diy:  { dx: 0,   dy: 20, anchor: 'middle' },
+        dys:  { dx: 9,   dy: 4,  anchor: 'start' },
+      },
+    },
+    tall: {
+      vb: [40, 26, 290, 262],
+      soma: { x: 180, y: 200, r: 15 },
+      branches: [
+        { id: 'miy', d: 'M166 186 C146 160 127 131 95 117',  w: [5.5, 1.8], t: [350, 1550] },
+        { id: 'diy', d: 'M198 186 C218 160 236 138 254 112', w: [5.5, 1.8], t: [450, 1750] },
+        { id: 'up',  d: 'M178 175 C175 136 180 96 164 50',   w: [4.8, 1.5], t: [400, 1450] },
+        { id: 'dl',  d: 'M162 214 C138 237 116 258 87 270',  w: [5, 1.6], t: [500, 1800] },
+        { id: 'dr',  d: 'M198 216 C222 240 244 258 276 269', w: [5, 1.6], t: [550, 1900] },
+      ],
+      twigs: [
+        { parent: 'dl', at: 0.55, w: [2.4, 1.2], dur: 700, d: P => `M${P.x} ${P.y} C${P.x + 2} ${P.y + 11} ${P.x + 5} ${P.y + 19} ${P.x + 11} ${P.y + 27}` },
+        { parent: 'up', at: 0.55, w: [2.2, 1.1], dur: 650, d: P => `M${P.x} ${P.y} C${P.x - 11} ${P.y - 3} ${P.x - 21} ${P.y - 2} ${P.x - 32} ${P.y + 5}` },
+      ],
+      offshoot: { w: [1.8, 1.1], d: D => `M${D.x} ${D.y} C${D.x + 4} ${D.y - 12} ${D.x + 3} ${D.y - 23} ${D.x - 3} ${D.y - 34}` },
+      place: {
+        soma: { dx: -24, dy: 4,   anchor: 'end' },
+        miy:  { dx: 0,   dy: -10, anchor: 'middle' },
+        diy:  { dx: 10,  dy: 4,   anchor: 'start' },
+        dys:  { dx: 0,   dy: -24, anchor: 'middle' },
+      },
+    },
+  };
+
+  const T_SOMA = [0, 450];
+  const OFFSHOOT_DELAY = 350, OFFSHOOT_DUR = 950;
+
+  const clamp01 = x => Math.max(0, Math.min(1, x));
+  const easeInOut = x => -(Math.cos(Math.PI * x) - 1) / 2;
+  const easeInOutInv = y => Math.acos(1 - 2 * y) / Math.PI;
+  const prog = (t, a, b) => clamp01((t - a) / (b - a));
+
+  function el(tag, attrs = {}, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  // Sample a path once: positions and unit normals every ~1px.
+  function sample(d) {
+    const p = el('path', { d }, svg);
+    const L = p.getTotalLength();
+    const n = Math.max(2, Math.ceil(L));
+    const pts = [];
+    for (let i = 0; i <= n; i++) {
+      const s = (L * i) / n;
+      const a = p.getPointAtLength(Math.max(0, s - 1));
+      const b = p.getPointAtLength(Math.min(L, s + 1));
+      const c = p.getPointAtLength(s);
+      const tx = b.x - a.x, ty = b.y - a.y;
+      const m = Math.hypot(tx, ty) || 1;
+      pts.push({ s, x: c.x, y: c.y, nx: -ty / m, ny: tx / m });
+    }
+    p.remove();
+    return { L, pts, at: s => pts[Math.min(pts.length - 1, Math.round((s / L) * (pts.length - 1)))] };
+  }
+
+  // A tapered ribbon along the path, drawn up to length `vis`.
+  function tube(S, vis, wf) {
+    if (vis < 0.5) return '';
+    const left = [], right = [];
+    for (const q of S.pts) {
+      if (q.s > vis) break;
+      const w = wf(q.s) / 2;
+      left.push(`${(q.x + q.nx * w).toFixed(2)} ${(q.y + q.ny * w).toFixed(2)}`);
+      right.push(`${(q.x - q.nx * w).toFixed(2)} ${(q.y - q.ny * w).toFixed(2)}`);
+    }
+    if (left.length < 2) return '';
+    return 'M' + left.join(' L') + ' L' + right.reverse().join(' L') + 'Z';
+  }
+
+  function blob(cx, cy, r) {
+    const pts = [];
+    for (let i = 0; i < 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      const k = 1 + 0.06 * Math.sin(3 * a + 1.1) + 0.04 * Math.sin(5 * a + 2.3);
+      pts.push(`${(cx + Math.cos(a) * r * k * 1.06).toFixed(2)} ${(cy + Math.sin(a) * r * k * 0.94).toFixed(2)}`);
+    }
+    return 'M' + pts.join(' L') + 'Z';
+  }
+
+  let scene = null;
+  let layoutKey = null;
+
+  function build(key) {
+    layoutKey = key;
+    const G = LAYOUTS[key];
+    svg.innerHTML = '';
+    svg.setAttribute('viewBox', G.vb.join(' '));
+    svg.style.maxWidth = key === 'wide' ? '' : '340px';
+
+    const defs = el('defs', {}, svg);
+    const tubes = el('g', {}, svg);
+    const top = el('g', {}, svg);
+
+    const taper = (L, w0, w1) => s => w1 + (w0 - w1) * Math.pow(1 - s / L, 1.1);
+    const mkPart = (d, w, T, cls = 'rg-teal') => {
+      const S = sample(d);
+      return {
+        S, T, wf: taper(S.L, w[0], w[1]), tip: S.at(S.L),
+        base: el('path', { class: cls }, tubes),
+        cap: el('circle', { r: 0, class: cls }, tubes),
+      };
+    };
+
+    const parts = [];
+    const byId = {};
+    // Start every branch inside the soma so it grows out of the cell body
+    const so = G.soma;
+    const rooted = d => d.replace(/^M\s*([\d.]+)\s+([\d.]+)/, (_, x, y) => {
+      const dx = x - so.x, dy = y - so.y, m = Math.hypot(dx, dy) || 1;
+      return `M${so.x + (dx / m) * so.r * 0.4} ${so.y + (dy / m) * so.r * 0.4} L${x} ${y}`;
+    });
+    for (const b of G.branches) {
+      const p = mkPart(rooted(b.d), b.w, b.t);
+      byId[b.id] = p;
+      parts.push(p);
+    }
+    for (const tw of G.twigs) {
+      const par = byId[tw.parent];
+      const P = par.S.at(par.S.L * tw.at);
+      const t0 = par.T[0] + (par.T[1] - par.T[0]) * easeInOutInv(tw.at);
+      parts.push(mkPart(tw.d(P), tw.w, [t0, t0 + tw.dur]));
+    }
+
+    // The offshoot: small, late, teal at the base shading to orange
+    const D = byId.diy.tip;
+    const oT0 = byId.diy.T[1] + OFFSHOOT_DELAY;
+    const oS = sample(G.offshoot.d(D));
+    const E = oS.at(oS.L);
+    const g = el('linearGradient', { id: 'rg-off', gradientUnits: 'userSpaceOnUse', x1: D.x, y1: D.y, x2: E.x, y2: E.y }, defs);
+    el('stop', { offset: 0, class: 'rg-stop-teal' }, g);
+    el('stop', { offset: 0.7, class: 'rg-stop-orange' }, g);
+    const off = mkPart(G.offshoot.d(D), G.offshoot.w, [oT0, oT0 + OFFSHOOT_DUR], 'rg-orange');
+    off.base.setAttribute('class', '');
+    off.base.setAttribute('fill', 'url(#rg-off)');
+    parts.push(off);
+
+    // Soma and the dots that anchor labels
+    const soma = el('path', { d: blob(so.x, so.y, so.r), class: 'rg-teal' }, top);
+    const dot = (q, cls) => el('circle', { cx: q.x, cy: q.y, r: 0, class: cls, 'data-r': 2.6 }, top);
+    const dots = { miy: dot(byId.miy.tip, 'rg-teal'), diy: dot(D, 'rg-teal'), dys: dot(E, 'rg-orange') };
+
+    // Labels: plain mono text, "iy" picked out in teal
+    const labels = el('g', {}, svg);
+    const mkLabel = (q, p, pieces, cls = 'rg-lab', note) => {
+      const grp = el('g', { opacity: 0 }, labels);
+      const t = el('text', { x: q.x + p.dx, y: q.y + p.dy, 'text-anchor': p.anchor, class: cls }, grp);
+      for (const [str, hl] of pieces) el('tspan', hl ? { class: 'rg-hl' } : {}, t).textContent = str;
+      if (note) {
+        const n = el('text', { x: q.x + p.dx, y: q.y + p.dy + 15, 'text-anchor': p.anchor, class: 'rg-note' }, grp);
+        n.textContent = note;
+      }
+      return grp;
+    };
+    const P = G.place;
+    const lab = {
+      soma: mkLabel(so, P.soma, [['iy', true]]),
+      miy: mkLabel(byId.miy.tip, P.miy, [['M'], ['iy', true], ['azaki']]),
+      diy: mkLabel(D, P.diy, [['d'], ['iy', true]]),
+      dys: mkLabel(E, P.dys, [['do it yourself']], 'rg-lab rg-off', 'no “iy”'),
+    };
+
+    const end = Math.max(...parts.map(p => p.T[1])) + 450;
+    scene = { G, parts, byId, off, soma, dots, lab, end };
+  }
+
+  const show = (g, p) => g.setAttribute('opacity', p.toFixed(3));   // labels fade in place
+  const pop = (c, p) => c.setAttribute('r', (+c.dataset.r * (p > 0 ? easeInOut(p) : 0)).toFixed(2));   // dots grow without overshoot
+
+  function drawPart(P, t) {
+    const vis = P.S.L * easeInOut(prog(t, ...P.T));
+    P.base.setAttribute('d', tube(P.S, vis, P.wf));
+    if (vis < 0.5) { P.cap.setAttribute('r', 0); return; }
+    const q = P.S.at(vis);
+    P.cap.setAttribute('cx', q.x);
+    P.cap.setAttribute('cy', q.y);
+    P.cap.setAttribute('r', (P.wf(vis) / 2) * (1 + 0.35 * clamp01((P.S.L - vis) / 16)));
+  }
+
+  function render(t) {
+    const s = scene;
+    const so = s.G.soma;
+    const ps = 0.8 + 0.2 * easeInOut(prog(t, ...T_SOMA));   // the cell body mostly fades in; no overshoot
+    s.soma.setAttribute('transform', `translate(${so.x} ${so.y}) scale(${Math.max(0.001, ps)}) translate(${-so.x} ${-so.y})`);
+    s.soma.setAttribute('opacity', prog(t, T_SOMA[0], T_SOMA[0] + 200));
+
+    s.parts.forEach(P => drawPart(P, t));
+
+    const { miy, diy } = s.byId;
+    pop(s.dots.miy, prog(t, miy.T[1] - 60, miy.T[1] + 300));
+    pop(s.dots.diy, prog(t, diy.T[1] - 60, diy.T[1] + 300));
+    pop(s.dots.dys, prog(t, s.off.T[1] - 60, s.off.T[1] + 300));
+
+    show(s.lab.soma, prog(t, 250, 650));
+    show(s.lab.miy, prog(t, miy.T[1], miy.T[1] + 350));
+    show(s.lab.diy, prog(t, diy.T[1], diy.T[1] + 350));
+    show(s.lab.dys, prog(t, s.off.T[1], s.off.T[1] + 400));
+  }
+
+  // Playback
+  let t0 = null, raf = null, current = 0, started = false;
+  function frame(now) {
+    if (t0 === null) t0 = now;
+    current = now - t0;
+    render(current);
+    raf = current < scene.end ? requestAnimationFrame(frame) : null;
+  }
+  function play() {
+    started = true;
+    if (raf) cancelAnimationFrame(raf);
+    if (reduceMotion) { current = Infinity; render(current); return; }
+    t0 = null;
+    raf = requestAnimationFrame(frame);
+  }
+
+  function pickLayout() {
+    const key = fig.clientWidth < 440 ? 'tall' : 'wide';
+    if (key !== layoutKey) { build(key); render(started ? current : 0); }
+  }
+
+  pickLayout();
+  new ResizeObserver(pickLayout).observe(fig);
+  fig.querySelector('.rg-replay').addEventListener('click', play);
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { io.disconnect(); play(); }
+    }, { threshold: 0.35 });
+    io.observe(fig);
+  } else {
+    play();
+  }
+})();
+</script></div>
+
+<p>至此我们已表明最后一层是可修复的。但在修复之前它在做什么？即便在架构改进之前，它也并未任意把事物放在一起。当我们重训模型并观察一个神经元形成时，它从黄花开始，照片中有时还包含一只狗。随后它沿那些照片的每一侧面生长：朝向其他种类的自然、朝向球类等绿色物体、朝向没有花的狗。我看过的每个神经元都是如此。改进后的架构显示同样的模式，但程度小得多。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">InceptionV1 与 ConvNeXt 中各一个神经元，在相同数据上训练，都从油菜田起步。两者早期都伸向球与水果；ConvNeXt 放手并留在田野上，而 InceptionV1 继续扩散，进入狗再进入西兰花，直到田野几乎消失。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们称之为<strong>递归泛化</strong>：一个神经元沿不止一个轴泛化，往往先沿一个轴，再以局部易于跟随的方式向外萌发，但最终使它不再「单义」。</p>
+<p>例如，一个语言模型神经元响应 “iy”（包括在 “Miyazaki” 中），再响应 “diy”，再响应 “do it yourself”——后者已完全不含 “iy”。</p>
+
+
+<p>图像与语言模型中到处都有例子。比如一个地质学神经元泛化进 Cesium——一个地质学 JavaScript 库。</p>
+<p>通常发生了什么非常明显，以至于很难说该不该就叫它普通泛化。比如一个「敌人」神经元对一首关于敌人的俄语诗发放。有时不那么清楚但仍合理。一个 Srinivasen 神经元也对 UniProt 蛋白质数据库轻微发放。该项目有若干 Srinivasen 与之相关，但很难确定。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">一个行星地质学神经元的最强发放混合了月球地壳与 IDL、Cesium 代码。按供给它们的回路分组，它们分离为一个核心的三个侧面——行星表面——以及一个旁枝：代码，它经由自己的路径到达。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们将在语言模型一节讨论这些递归泛化的旁枝及其重要程度。这里只想说明这一母题是什么。</p>
+<p>我们最早在 <a href="https://distill.pub/2021/multimodal-neurons/#feature-properties">Multimodal Neurons</a>[3] 中暗示过这一点，称之为「联合特征」（conjoined features）。直到研究递归泛化数月后回看该领域最著名的模型，我才想起来。据我记忆，包括我在内，没有人提出它可能是一般解释——例如解释 InceptionV1 最后一层出了什么问题。没有训练检查点我们无法观察其形成，但解释基本上是对的。附录说明我为何认为新名称更准确。</p>
+<h2 id="叠加">叠加</h2>
+<div class="demo-block"><p class="demo-note">交互示意（本地镜像）：任意打包 vs 泛化。悬停/点按神经元比较两面板。完整互动以原文为准。</p><figure id="packing-vs-growing" class="pvx" data-level="0">
+<style>
+.pvx{--pvx-w:min(1000px,calc(100vw - 80px));container-type:inline-size;width:var(--pvx-w);margin:30px 0 34px calc((100% - var(--pvx-w))/2);padding:16px 0 0;border-top:1px solid #dce3e2;font-family:var(--sans,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif);color:#29383a}
+.pvx *{box-sizing:border-box}
+.pvx .pvx-panels{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px}
+.pvx .pvx-title{font-size:14px;font-weight:600;line-height:1.3;margin:0}
+.pvx .pvx-sub{font-family:inherit;font-size:12.5px;line-height:1.4;color:#6f7d80;margin:2px 0 12px}
+.pvx .pvx-stage{position:relative;height:60px;touch-action:pan-y}
+.pvx .pvx-box{position:absolute;left:0;top:0;cursor:default;border:1px solid #d9e1e2;background:#f4f7f7;border-radius:4px;outline:none;
+  transition:transform .6s cubic-bezier(.3,.7,.2,1),width .6s cubic-bezier(.3,.7,.2,1),height .6s cubic-bezier(.3,.7,.2,1),opacity .35s,border-color .15s,background-color .15s}
+.pvx .pvx-box.off{opacity:0;pointer-events:none}
+.pvx .pvx-box.on,.pvx .pvx-box:focus-visible{border-color:#28627b;background:#eaf2f5}
+.pvx .pvx-box:focus-visible{box-shadow:0 0 0 2px #fff,0 0 0 4px #3585ab}
+.pvx .pvx-chip{position:absolute;left:0;top:0;width:var(--c,16px);height:var(--c,16px);pointer-events:none;
+  transition:transform .6s cubic-bezier(.3,.7,.2,1),opacity .2s}
+.pvx .pvx-chip i{display:block;width:100%;height:100%;background:currentColor}
+.pvx .pvx-chip[data-f="0"] i{border-radius:50%}
+.pvx .pvx-chip[data-f="1"] i{border-radius:18%;transform:scale(.88)}
+.pvx .pvx-chip[data-f="2"] i{clip-path:polygon(50% 2%,100% 92%,0 92%);transform:scale(1.12)}
+.pvx .pvx-chip[data-f="3"] i{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);transform:scale(1.14)}
+.pvx.pvx-hl .pvx-chip:not(.on){opacity:.14}
+.pvx.pvx-still .pvx-box,.pvx.pvx-still .pvx-chip{transition:none}
+.pvx .pvx-control{display:grid;grid-template-columns:auto minmax(0,300px) auto;align-items:center;justify-content:center;gap:0 16px;margin:14px 0 0;font-size:13px;color:#4c5b5d}
+.pvx .pvx-control label{font-weight:600;color:#29383a}
+.pvx .pvx-slider{position:relative;padding-bottom:22px;margin-top:22px}
+.pvx input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:24px;margin:0;background:transparent;cursor:ew-resize}
+.pvx input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:#d7e0e2}
+.pvx input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:#d7e0e2}
+.pvx input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;border-radius:50%;background:#28627b;border:2px solid #fff;box-shadow:0 0 0 1px #28627b}
+.pvx input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#28627b;border:2px solid #fff;box-shadow:0 0 0 1px #28627b}
+.pvx input[type=range]:focus-visible{outline:none}
+.pvx input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 1px #28627b,0 0 0 5px #3585ab55}
+.pvx input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 1px #28627b,0 0 0 5px #3585ab55}
+.pvx .pvx-ticks button{position:absolute;top:21px;transform:translateX(-50%);background:none;border:0;padding:4px 8px;font-size:12px;color:#8b959b;font-variant-numeric:tabular-nums;cursor:pointer}
+.pvx .pvx-ticks button[aria-pressed=true]{color:#28627b;font-weight:650}
+.pvx .pvx-ticks button:focus-visible{outline:2px solid #3585ab;outline-offset:1px;border-radius:2px}
+.pvx .pvx-ticks button:nth-child(1){left:9px}.pvx .pvx-ticks button:nth-child(2){left:50%}.pvx .pvx-ticks button:nth-child(3){left:calc(100% - 9px)}
+.pvx output{min-width:128px;font-variant-numeric:tabular-nums;color:#6f7d80}
+.pvx figcaption{margin:12px auto 0;max-width:720px;text-align:center}
+.pvx .pvx-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@container (max-width:780px){
+  .pvx .pvx-panels{grid-template-columns:minmax(0,1fr);gap:22px}
+  .pvx .pvx-stage{max-width:600px}
+  .pvx .pvx-control{grid-template-columns:auto minmax(0,1fr);gap:0 14px;max-width:600px}
+  .pvx output{grid-column:1/-1;text-align:center;margin-top:2px}
+  .pvx figcaption{text-align:left}
+}
+@media (max-width:650px){.pvx{width:100%;margin-left:0}}
+@media (prefers-reduced-motion:reduce){.pvx .pvx-box,.pvx .pvx-chip{transition:none}}
+@media print{.pvx{width:100%;margin-left:0;break-inside:avoid}}
+</style>
+<div class="pvx-panels">
+  <div class="pvx-panel" data-panel="pack">
+    <div class="pvx-title">任意打包（叠加）</div>
+    <p class="pvx-sub">Unrelated things share a neuron</p>
+    <div class="pvx-stage" role="group" aria-label="Arbitrary packing neurons"></div>
+  </div>
+  <div class="pvx-panel" data-panel="gen">
+    <div class="pvx-title">泛化</div>
+    <p class="pvx-sub">Similar things share a neuron</p>
+    <div class="pvx-stage" role="group" aria-label="Generalization neurons"></div>
+  </div>
+</div>
+<div class="pvx-control">
+  <label for="pvx-n">Neurons</label>
+  <div class="pvx-slider">
+    <input id="pvx-n" type="range" min="0" max="2" step="1" value="0" aria-valuetext="4 neurons">
+    <div class="pvx-ticks"><button type="button" data-i="0" aria-pressed="true" aria-label="4 neurons">4</button><button type="button" data-i="1" aria-pressed="false" aria-label="8 neurons">8</button><button type="button" data-i="2" aria-pressed="false" aria-label="16 neurons">16</button></div>
+  </div>
+  <output for="pvx-n">8 things per neuron</output>
+</div>
+<p class="pvx-sr" aria-live="polite"></p>
+<figcaption>Conceptual illustration. The same 32 things appear in both panels; similar colors and shapes are similar things. Fewer neurons make generalizing neurons coarser, never fractured. Hover or tap a neuron to find its things in both panels.</figcaption>
+<script>
+(function(){
+  var fig=document.getElementById('packing-vs-growing');
+  if(!fig||fig.dataset.pvxReady)return;fig.dataset.pvxReady='1';
+  var LEVELS=[4,8,16],N=32,MAXK=16,COLS=16;
+
+  /* seeded, so every reader sees the same packing */
+  var seed=20260923>>>0;
+  function rnd(){seed=(seed+0x6D2B79F5)>>>0;var t=seed;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;}
+  function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),x=a[i];a[i]=a[j];a[j]=x;}return a;}
+
+  /* 32 things on a hue wheel: four families of eight (color = meaning; shape repeats the family) */
+  var FAM=[
+    {name:'reds and oranges',a:[.575,.165,24],b:[.745,.150,62]},
+    {name:'yellows and greens',a:[.790,.145,94],b:[.615,.135,148]},
+    {name:'teals and blues',a:[.680,.105,194],b:[.525,.140,262]},
+    {name:'purples and pinks',a:[.530,.150,300],b:[.705,.150,354]}];
+  function oklch(L,C,h){
+    h*=Math.PI/180;var a=C*Math.cos(h),b=C*Math.sin(h);
+    var l=Math.pow(L+.3963377774*a+.2158037573*b,3),m=Math.pow(L-.1055613458*a-.0638541728*b,3),s=Math.pow(L-.0894841775*a-1.291485548*b,3);
+    var rgb=[4.0767416621*l-3.3077115913*m+.2309699292*s,-1.2684380046*l+2.6097574011*m-.3413193965*s,-.0041960863*l-.7034186147*m+1.707614701*s];
+    return '#'+rgb.map(function(x){x=x<=.0031308?12.92*x:1.055*Math.pow(x,1/2.4)-.055;return('0'+Math.round(Math.max(0,Math.min(1,x))*255).toString(16)).slice(-2);}).join('');
+  }
+  var things=[],gen=[],pack=[];
+  FAM.forEach(function(F,f){for(var i=0;i<8;i++){var u=i/7,v=F.a.map(function(x,k){return x+(F.b[k]-x)*u;});
+    things.push({f:f,color:oklch(v[0],v[1],v[2])});
+    gen.push({col:4*f+Math.floor(i/2),row:i%2});}});   /* generalization: contiguous hue ranges, split in half at each doubling */
+
+  /* arbitrary packing: pair opposite families, then combine pairs, so every neuron mixes unrelated things */
+  function range(a){var r=[];for(var i=a;i<a+8;i++)r.push(i);return r;}
+  var C=shuffle(range(16)),D=shuffle(range(24));
+  var ac=range(0).map(function(t,i){return shuffle([t,C[i]]);}),bd=shuffle(range(8).map(function(t,i){return shuffle([t,D[i]]);}));
+  var quads=shuffle(ac.map(function(p,i){return shuffle([p,bd[i]]);}));
+  quads.forEach(function(q,qi){q.forEach(function(p,pj){p.forEach(function(t,r){pack[t]={col:2*qi+pj,row:r};});});});
+
+  /* neuron b at width K covers a block of columns in the 16x2 lattice; neurons b and b+K are the two halves of neuron b at width 2K */
+  function reg(b,K){
+    if(K===4)return{c0:b*4,c1:b*4+4,r0:0,r1:2};
+    var h=b>=K/2,R=reg(b%(K/2),K/2),m=(R.c0+R.c1)/2;
+    return{c0:h?m:R.c0,c1:h?R.c1:m,r0:0,r1:2};
+  }
+  function cellOf(p,t){return p==='pack'?pack[t]:gen[t];}
+  function inReg(c,R){return c.col>=R.c0&&c.col<R.c1&&c.row>=R.r0&&c.row<R.r1;}
+
+  var level=0,G=null,hover=null,ptr='keyboard',out=fig.querySelector('output'),live=fig.querySelector('.pvx-sr'),input=fig.querySelector('#pvx-n');
+  var ticks=[].slice.call(fig.querySelectorAll('.pvx-ticks button'));
+  var panels=['pack','gen'].map(function(p){
+    var stage=fig.querySelector('[data-panel="'+p+'"] .pvx-stage'),boxes=[],chips=[];
+    for(var b=0;b<MAXK;b++){var e=document.createElement('div');e.className='pvx-box';e.id='pvx-'+p+'-'+b;e.setAttribute('role','img');e.tabIndex=-1;stage.appendChild(e);boxes.push(e);}
+    things.forEach(function(T){var e=document.createElement('span');e.className='pvx-chip';e.setAttribute('aria-hidden','true');e.dataset.f=T.f;e.style.color=T.color;e.appendChild(document.createElement('i'));stage.appendChild(e);chips.push(e);});
+    return{p:p,stage:stage,boxes:boxes,chips:chips};
+  });
+
+  function geom(W){var gm=Math.max(3.5,Math.min(6,W*.012)),pitch=(W-15*gm)/COLS;return{W:W,gm:gm,p:pitch,c:Math.round(pitch*.68),H:2*pitch+gm};}
+  function gut(K){return K>=16?G.gm:15*G.gm/(K-1);}
+  function xc(col,K){var w=K>=16?1:COLS/K;return col*G.p+Math.floor(col/w)*gut(K);}
+  function yr(row){return G.gm/2+row*G.p;}
+
+  function describe(P,b,K){
+    var R=reg(b,K),fams={},n=0;
+    for(var t=0;t<N;t++)if(inReg(cellOf(P.p,t),R)){n++;fams[things[t].f]=1;}
+    var fs=Object.keys(fams).map(function(f){return FAM[f].name;});
+    return 'Neuron '+(order(K).indexOf(b)+1)+' of '+K+': '+(n===1?'one thing, '+fs[0]:n+' things, '+(fs.length===1?'all '+fs[0]:fs.length===4?'mixing all four families':'mixing '+fs[0]+' with '+fs[1]));
+  }
+  function order(K){var o=[];for(var b=0;b<K;b++)o.push(b);return o.sort(function(a,b){var A=reg(a,K),B=reg(b,K);return A.r0-B.r0||A.c0-B.c0;});}
+
+  function render(){
+    var K=LEVELS[level];
+    panels.forEach(function(P){
+      var W=P.stage.clientWidth;if(!W)return;G=geom(W);
+      P.stage.style.height=G.H+'px';P.stage.style.setProperty('--c',G.c+'px');
+      P.boxes.forEach(function(e,b){
+        var vis=b<K,R=reg(vis?b:b%K,K),x0=xc(R.c0,K),x1=xc(R.c1-1,K)+G.p,y0=yr(R.r0),y1=yr(R.r1-1)+G.p;
+        e.style.transform='translate('+x0.toFixed(2)+'px,'+y0.toFixed(2)+'px)';e.style.width=(x1-x0).toFixed(2)+'px';e.style.height=(y1-y0).toFixed(2)+'px';
+        e.classList.toggle('off',!vis);e.setAttribute('aria-hidden',vis?'false':'true');
+        if(vis)e.setAttribute('aria-label',describe(P,b,K));
+      });
+      var d=(G.p-G.c)/2;
+      P.chips.forEach(function(e,t){var c=cellOf(P.p,t);e.style.transform='translate('+(xc(c.col,K)+d).toFixed(2)+'px,'+(yr(c.row)+d).toFixed(2)+'px)';});
+      var o=order(K);   /* reading and tab order follow the picture, not creation order */
+      o.forEach(function(b,i){P.boxes[b].tabIndex=i===0?0:-1;});
+      P.stage.setAttribute('aria-owns',o.map(function(b){return P.boxes[b].id;}).join(' '));
+    });
+  }
+
+  function highlight(P,b){
+    hover=P?{p:P.p,b:b}:null;
+    fig.classList.toggle('pvx-hl',!!P);
+    var K=LEVELS[level],R=P&&reg(b,K);
+    panels.forEach(function(Q){
+      Q.boxes.forEach(function(e,i){e.classList.toggle('on',!!P&&Q===P&&i===b);});
+      Q.chips.forEach(function(e,t){e.classList.toggle('on',!!P&&inReg(cellOf(P.p,t),R));});
+    });
+  }
+
+  function set(i,announce){
+    i=Math.max(0,Math.min(LEVELS.length-1,i|0));if(i===level&&announce!==false&&fig.dataset.level==i)return;
+    level=i;fig.dataset.level=i;var K=LEVELS[i],per=N/K;
+    input.value=i;input.setAttribute('aria-valuetext',K+' neurons');
+    ticks.forEach(function(t,j){t.setAttribute('aria-pressed',j===i?'true':'false');});
+    out.textContent=per===1?'1 thing per neuron':per+' things per neuron';
+    if(hover)highlight(null);
+    render();
+    if(announce!==false)live.textContent=K+' neurons, '+out.textContent+'. Arbitrary packing: every neuron mixes '+(K===16?'two opposite families':'all four families')+'. Generalization: each neuron holds '+(K===4?'one family.':'a narrower range of one family.');
+  }
+
+  input.addEventListener('input',function(){set(+input.value);});
+  ticks.forEach(function(t){t.addEventListener('click',function(){set(+t.dataset.i);});});
+  panels.forEach(function(P){
+    P.boxes.forEach(function(e,b){
+      var mine=function(){return hover&&hover.p===P.p&&hover.b===b;};
+      e.addEventListener('pointerdown',function(ev){if(ev.pointerType==='mouse')ev.preventDefault();});   /* mouse: no stray focus */
+      e.addEventListener('pointerenter',function(ev){if(ev.pointerType==='mouse')highlight(P,b);});
+      e.addEventListener('pointerleave',function(ev){if(ev.pointerType==='mouse'&&mine()&&document.activeElement!==e)highlight(null);});
+      e.addEventListener('click',function(){if(ptr==='mouse')highlight(P,b);else if(mine())highlight(null);else highlight(P,b);});   /* tap toggles */
+      e.addEventListener('focus',function(){if(ptr!=='touch'&&ptr!=='pen')highlight(P,b);});
+      e.addEventListener('blur',function(){if(mine())highlight(null);});
+      e.addEventListener('keydown',function(ev){
+        var K=LEVELS[level],o=order(K),i=o.indexOf(b),j=i;
+        if(ev.key==='ArrowRight'||ev.key==='ArrowDown')j=Math.min(K-1,i+1);
+        else if(ev.key==='ArrowLeft'||ev.key==='ArrowUp')j=Math.max(0,i-1);
+        else if(ev.key==='Home')j=0;else if(ev.key==='End')j=K-1;
+        else if(ev.key==='Escape'){e.blur();return;}else return;
+        ev.preventDefault();e.tabIndex=-1;var n=P.boxes[o[j]];n.tabIndex=0;n.focus();
+      });
+    });
+  });
+  document.addEventListener('pointerdown',function(ev){ptr=ev.pointerType;if(hover&&!fig.contains(ev.target))highlight(null);},true);
+  document.addEventListener('keydown',function(){ptr='keyboard';},true);
+
+  var still=function(){fig.classList.add('pvx-still');render();requestAnimationFrame(function(){requestAnimationFrame(function(){fig.classList.remove('pvx-still');});});};
+  if(window.ResizeObserver)new ResizeObserver(still).observe(panels[1].stage);else window.addEventListener('resize',still);
+  set(+input.value||0,false);still();
+})();
+</script>
+</figure></div>
+
+<p>递归泛化并不是特别大胆的解释；可以说它正是我们应从普通泛化中期待的。但关于多义性还提出过一种大胆得多的解释：一种新的学习原则。</p>
+<p>我们处处见到的主要学习原则是泛化。在泛化下，事物因共享模式而被放在一起，把该模式放在一处有用，以便继续构建。在叠加下，无关事物被放在一起，因为它们互不干扰。二者预测相反：泛化应是局部的，叠加应是非局部的，因为它会希望非常不同的事物彼此邻近。</p>
+<p>泛化会想要一个耷拉耳狗神经元，可想成许多略有不同角度与种类的耷拉耳在一起。叠加会想要一个耷拉耳狗 + 拉丁诗歌神经元。</p>
+
+
+<p>此处定义开始纠缠。除叠加外，<a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a>[4] 还引入了「特征」作为神经网络基本单位的想法。取决于你看哪里，叠加于是要么意味着「特征多于维度」——即便完全单义的网络也会满足，因为其神经元会组合——要么意味着上述那种学习原则，有时用于神经元所学，有时用于特征去向。⁴</p>
+<p>⁴ 例如，InceptionV1 的 4b 层对车窗、车身、车轮等汽车部件有基本上单义的神经元，下一层把它们组装成汽车神经元 4c:447。在特征视角下，合理的说法是「汽车特征」不只在 4c:447，也在构建它的 4b 神经元组合中。于是相邻层有两个汽车特征，共享几乎完全相同的机制。在「特征多于维度」视角下，前者处于叠加，后者或许不是。按非正式短文 <a href="https://transformer-circuits.pub/2023/superposition-composition/index.html">Distributed Representations: Composition &amp; Superposition</a> 的意义，前者是分布式的，但是通过组合；后者根本不是分布式的。这也是我发现假设特征难以用来思考的原因之一，以及我通常更偏好具体机制（如神经元）与具体数据片段的原因。</p>
+<p>因此「叠加」本身也处于若干常见用法的叠加之中。我们聚焦于应用于神经元等机制的学习原则，因为它是否形成，占据了可解释性好消息或坏消息中不成比例的份额。它也相当易于检验：递归泛化与叠加预测几乎相反的事，你可以观察神经元生长，看发生的是哪一种。</p>
+<p>本文中我说叠加时，指的是这一版本；我们稍后会讨论「特征多于维度」的问题——我基本上不认为那是坏消息。</p>
+<h2 id="空白处的叠加">空白处的叠加</h2>
+<p>多义性往往更多是关于观察者而非神经元的主张。它说的是：尚无好的解释。可能的原因有几个：</p>
+<ol>
+<li>
+<p>坏工具：我们的透镜或显微镜不够好</p>
+</li>
+<li>
+<p>坏解释：由那些工具产生</p>
+</li>
+<li>
+<p>坏学习：因糟糕架构、训练数据或其他原因，网络学得不好</p>
+</li>
+<li>
+<p>递归泛化：在泛化时，神经元沿若干相关方向分枝</p>
+</li>
+<li>
+<p>叠加：学习原则的改变——网络把无关事物打包进同一神经元，因为它们很少碰撞。</p>
+</li>
+</ol>
+<p>多年来我是坚定的叠加信徒。我开始研究语言模型神经元，并非出于对神经元或叠加的兴趣，而是对代理是否具有研究品味感兴趣！我想看它们在检验解释时是否会问好问题，神经元只是作为基线。我预期它们会撞上叠加中难以处理的特征碎片。那本会给出神经元究竟多清晰的新基线，然后代理可以继续用某种更干净的学习基。但它从未到来，因为神经元不断出现，归结为简单解释，并做出站得住的意外预测。</p>
+<p>在一个前沿语言模型中，我发现一个神经元大多在 “pr” 上发放，但也在一堆 Base64 URL 字符串以及一些孟加拉语上发放。我以为这终于是任意混合了。但解码那些 URL：“pr” 词。翻译孟加拉语：还是 “pr”。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">示意：解码或转写后，噪声原来是 “pr”。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>在一个稠密 Qwen 模型中，一位同事遇到一个被标准 top-k 自动化可解释性列为「多义逗号神经元」的神经元。但仔细看，它原来在追踪科罗拉多：电话号码、俚语，以及与其他科罗拉多神经元的连接。转向它会使模型想去徒步。逗号是它存储迄今科罗拉多上下文的运行摘要之处。一般而言，注意力似乎会聚集在标点上，我们称之为摘要母题（summary motif）。一旦知道它，许多相似神经元就更容易理解。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">逗号保持暗淡，直到科罗拉多出现，随后随其构建而变亮；转向该神经元会规划一次徒步。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>另一些时候，我们只是数据不够。起初我们没有包含长上下文，两段似乎就够了。但这意外地使所有长上下文神经元看起来都是多义的。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">仅看最后一段会以为是一个关于咖啡与大学的神经元；原因在更上面。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>还有一次，一个神经元看起来像任意一团乱麻，没有任何强发放。原来它在健康 SEO 垃圾页面中寻找特定迹象；一旦我们有了足够广的数据集，它就可理解了。</p>
+<p>在数百个这类案例中，没有任何东西动摇我对叠加的信念。它只是不断移动。若强激活回来是干净的，叠加就会移到弱激活，或神经元组合，或我尚未看过的神经元。或者也许跨层本身。</p>
+<p>但最终我开始疑惑究竟发生了什么。除非这是某种戏剧性的、延伸的选择偏差，否则有些东西与早期模型生物对不上。于是我回过头，原始证据倒下了，并引向了本文。</p>
+<p>我现在认为，我当时把叠加当作零假设，而它本应是最后的假设，因为它最激进、也最不可检验。它看起来只是「说不通的东西」。但那也是坏工具的样子（特征可视化奖励投机），或你尚未跟随的递归泛化（“iy” 神经元），或坏架构（InceptionV1 的 5b），或你尚未理解的泛化（猫与汽车）。</p>
+<p>我认为部分原因是叠加感觉就是对的。Anthropic 的 <a href="https://transformer-circuits.pub/2022/solu/index.html">Softmax Linear Units</a>[20] 论文在 2022 年就这么说过：「在机制可解释性共同体中，叠加常被当作默认假设，仅仅因为它直觉上比其他解释更有说服力，但证据很少。」⁵ 据我所知，自我最初那条——已是错误——以来，无人在真实网络中找到叠加回路。尽管我预期会看到，我在真实模型中看不到任何类似之物；我认为声称它的门槛应当很高，因为它如此激进，对我们应该如何研究神经网络会是大新闻——坏新闻。</p>
+<p>⁵ 下一句中，该论文说其自身结果是叠加的中等证据。按论文自己的用词，那证据是间接的：SoLU 抑制跨许多神经元散布的激活，额外的 LayerNorm 恢复性能，而 LayerNorm 之后神经元的弱激活看起来与其主任务关联更少，论文将其读作特征经小激活被偷运。我们将其读作关于在为抑制分布式表示而建的架构中分布式表示的证据，而非关于神经元打包无关事物——而这才是我们关心的意义。即便用今天的工具，在弱激活中区分二者也很难，因为随着激活变弱，意义同时向各方向偏移；在 2022 年对我们所有人更难。该论文还指出其叠加讨论已被 Toy Models of Superposition 取代，我们在附录中讨论。我们提起它并非批评任何一篇论文，而是因为这是我们所知唯一有人坦率说出真实世界证据多么少的地方，而我们仍觉得人们常常假定证据比实际更多。</p>
+<p>当然，这有相反错误的风险——对空白的解释：假定每个神经元都必须有合理故事。两件事使它不那么令人担忧。第一，其他每一种原因都可以检验。更好的工具要么解析该神经元要么不能；用更好架构重训可显示学习是否是问题；递归泛化可以在生长中以小步观察。叠加的唯一症状是「说不通」。第二，真正的解释往往狭窄且易于检验。一旦你怀疑某个神经元是科罗拉多神经元，转向它看它说什么。若神经元对某种狭窄的电视套路发放，能算作该解释的事物集合极小，而「说不通的东西」覆盖其外的一切。</p>
+<p>而且，我们不必强加我们没有的解释。若一个神经元可能做几件无关的事而你不确定，完全可以这么说。我认为递归泛化应在可疑清单上靠前，且若有训练检查点就很容易核查。我现在认为叠加应排在很后面。</p>
+<h2 id="探索图像模型">探索图像模型</h2>
+<p>小型图像模型或许显得过时，但我认为它们对这个问题很重要，因为我们可以看得如此清楚。它们也是许多原初担忧的来源：我们在那里看到的像是高分辨率混沌，而非低分辨率含混。语言模型巨大，我们没有特征可视化这类让生活更轻松的工具，注意力把不同种类的机制混在一起，且其许多母题令人意外。如上所示，即便视觉母题也可能反直觉，语言更甚。这些缺陷中的每一种都可能使单义神经元看起来多义。若你看着一张模糊图像试图分辨是狗还是猫，模糊使两者都更难，但并不偏向任一答案。若你看着一张模糊图像并试图决定是图像本身模糊还是你看走了眼，视力的每一个瑕疵都会被算作图像中的模糊。若我们想研究神经元如何随规模、压缩压力、激活强度与深度变化，最好从能看清的地方开始。</p>
+<p>我训练了三个规模跨越约 300× 的 ConvNeXt 模型：小型 92k 参数，中型 7.06M（与 InceptionV1 同规模），大型 28.6M。我们将看这些，以及 InceptionV1，以理解神经元在不同情境下做什么，并试图找到打包可能形成之处。</p>
+<h3>我如何思考神经元</h3>
+<p>我曾把神经元想成人类形状的名词：一个是汽车，另一个是曲线。现在我更多把它们想成控制流。一个神经元与其说关乎它看见什么，不如说关乎它对流入流做什么，而其工作往往是门控网络的一个区域。如此看来，单义性几乎是错误的问题。更好的问题是：一个神经元放行什么、拦下什么。</p>
+<p>像素进来，网络开始归组与区分事物。汽车与狗可能因共享姿态而被归在一起。再往后有具体的汽车检测器——出租车、救护车等——它们不要狗。于是它们前面的一个神经元充当门：对汽车正响应、对狗负响应，其负极把狗挡在外面。狗继续去自己的区域，不必担心汽车。更后的神经元在此之上构建，进一步专精：救护车神经元的负极可能是出租车，出租车的负极可能是救护车。在更大模型中，这些区分可以更细，把出租车的一个视角与另一个分开。更小的模型可能停在更粗的区分，更接近一般的「汽车」神经元。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">汽车与狗早期共享姿态；汽车检测器前的门放行汽车，并用负极把狗挡开。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>这里是一辆真实跑车，跟随穿过我们大型模型的最后五个块。中途，它与桌子、柜子等其他矩形形状归在一起，对立于蛇与狗。到最后一块，分裂是敞篷车对立于旅行车。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">一辆选定的跑车，跟随穿过 ConvNeXt large 的 18 个块中的最后五个。每列是对该图像向下一个贡献最多的神经元（最后一列对跑车输出）。线上方是它把汽车与什么归在一起；线下方是它把汽车与什么分开。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>即便在负极被切断的 ReLU 网络中，神经元的负极对理解它们几乎与正极同样重要。神经元由投票构成：每个输入权重为其正极或负极投票，投票在非线性之前相加。负极自身从不获得梯度，但每当神经元开启时个别投票会获得，因此它也被学习塑形。负极的含义取决于上下文：当跑车路径上的一个神经元把它与蛇和狗分开时，并不是在说汽车与狗是对立面，而只是把门控掉先前有用归组的东西。负极告诉我们在回路的这一点什么区分重要，这也使它成为归组是否真实的快速检查：V 神经元的负极是 O。</p>
+<p>若我们看最后一层，会看到高层模式以及它们正在与什么区分：出租车与救护车、西兰花与花椰菜、琵鹭与火烈鸟。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">ConvNeXt large 的最后一层神经元：每一个响应一种模式，并对密切相关的一种负响应。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>当我们看最小模型时，神经元变粗。其最后一层停在汽车、火车与马车同属一个神经元，负极是船、飞机以及一种水上牛车（我甚至不知道它存在）。它仍在分化，但更粗，且结束得早。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">小模型的最后一层神经元：正极是地面车辆，负极是船与飞机。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>压力下的神经元做什么</h3>
+<p>多数视觉模型的早期层是单义的。按我的理解，标准解释是需要表示的早期视觉特征没那么多。表面上有点奇怪：从 AlexNet 到 ResNet、InceptionV1 再到 CLIP，每个模型都有恰好的早期特征与早期神经元比例，尽管它们的数据集与参数量比例差异很大。</p>
+<p>我们可以聚焦的一层是 InceptionV1 的 3b，即有曲线神经元与高低频神经元的那一层，在我看来属于最基础之列。该模型没有残差流，因此无法「绕流」过神经元。于是我们可以通过把数量从 480 减到 10 并重训，检验空间不足时神经元会发生什么。</p>
+<p>若它切换到叠加，我们应看到彼此重叠的混合，比如曲线加橙色螺旋加蛛网及其他若干纹理检测器。我们把它压了 48 倍，应当很戏剧性！</p>
+<p>但那不是我们看到的。神经元保持可解释且泛化，但更粗：一个「曲线与环」神经元取代十个曲线检测器，两个圆神经元取代若干圆类型，等等。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">InceptionV1 从零重训，将 3b 层从 480 个神经元砍到 10，且无旁路。每行是一个神经元及其五个最强自然裁剪。ImageNet top‑1 58.35%，top‑5 81.14%。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们可以显式检验曲线，看它们发生了什么。若它们被放进某种高维神经元组合，我们应能把它们提取出来。于是我们可以在这个被压层上训练 SAE，并与原始比较。我们看不到任何像干净曲线神经元的东西！</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">InceptionV1 重训并将 3b 压到 10 个神经元，再用稀疏自编码器展开。每个原始曲线检测器的位置显示最接近它的自编码器特征：宽阔且挤在一起，而非十条曲线。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我认为这是能否把我熟悉的单义层变成叠加的好测试。但在某些方面不理想，因为人们大多怀疑叠加在最后几层。于是我们可以拿中型 ConvNeXt，压扁最后一层，阻止它绕残差流路由，看它学到什么。我们看到同样的变宽模式。</p>
+<p>这与小型 ConvNeXt 所见相同，而那在某些方面是非常相似的测试。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">中型 ConvNeXt，最后一层从 1,024 个神经元砍到 13，从零训练。每个神经元最强的正负图像。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>晚期回路</h3>
+<p>我们也可以看深层中的回路，以排除最后一层不知何故特殊的可能。我们看到它从头到尾都有组织。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**修道院。** 五条回路，各自沿选定连接跨五个块进入一个最后一层神经元。每个神经元显示一张优化图像与四个数据集例子。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>字典学到什么</h3>
+<p>若神经元组合在隐藏东西，字典（例如 SAE）应找到神经元所缺的构件。于是我在这些层上训练了若干，自己并与代理一起去找。我什么也没找到。</p>
+<p>大体上，二者看起来正是它们在机制上所是：神经元像构件，SAE 单元像按上下文归组的那些构件。对蜘蛛最清楚。SAE 单元是不同场景中的蜘蛛；神经元是腿部模式与蛛网。它们分歧不大。</p>
+<p>SAE 确实有助于「这张图里有什么？」。在最小模型上帮助最大，其神经元较粗。中型规模我略偏好它们；大型上，我想我更偏好神经元。但我更关心理解网络而非任一图像，我从未见过 SAE 抓住神经元没有的根本性东西。若某一规模的模型未能理解棒球运动员，其 SAE 也未能。当模型最终理解棒球运动员时，是在一个神经元上。</p>
+<p>SAE 找到了什么尚无清晰神经元对应物的？在最后一层，其活动的 88% 是单神经元的近副本，其余微弱：移除每一个不匹配任何神经元的字典方向，精度不变，它翻转的少数答案本已接近平局。此外，若你在一层的旋转中搜索使少数单元承载最多活动的那个，从随机出发，你会回到神经元——在每个块中都是如此。在少数强到值得看的特征中，SAE 加上的是由既有神经元构成的松散归组，如水面动物或苍白块状食物。我们在那里找到的没有任何东西像根本性的新构件。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">每个新增特征显示其由哪些既有神经元构成及各自用量。「典型特征」显示构成 SAE 大部分的单神经元近副本。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>稀有事物与记忆</h3>
+<p>对隐藏特征的许多担忧来自稀有事物。它们很少与任何东西碰撞，也可能看起来不值得拥有自己的神经元。于是我们以能想到的每种方式看稀有事物。稀有类别往往更集中：ImageNet 需要很多狗模式，但只需一个三角龙神经元。当我在最后阶段移除弱激活时，没有类别突出。我们追踪的对抗样本使用平常的语义回路路径。</p>
+<p>我看了在最后几层表示离任何其他图像最远的那些图像。结果是有趣、怪异的图像，模型用普通神经元误读它们：蜂鸟被看成冰淇淋，巨大香蕉被看成金库，倒在手推车里的人被看成割草机。我还训练了一个 ImageNet 模型把随机噪声映射到随机标签，即便那也部分是语义的：它部分倚赖羊毛纹理与远处树木的纹理，它们是高频的，有点像高频噪声。我没有完整审计该模型，但觉得它竟然使用它们很有意思。在语言与视觉的所有实验中，记忆往往想尽可能靠近输出，因为它只需查答案，而最后几层做了大部分工作。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">不寻常图像，平常机制。上方：测得的响应图。下方：按消融度量，每张图像最支持的最后一层神经元的自然例子。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们也可以自己制造一条稀有路径：教我们 7.06M 参数的模型一件荒谬之事——把雨伞照片标为蜜蜂。你可以想象这种记忆不依赖任何其他东西：一个附着于这组精确像素并说「蜜蜂」的隐藏特征，与网络其余部分切断，因为它不需要。那会是相当坏的消息，但发生的绝非如此。在九个训练步中，顶部猜测从雨伞到五月柱再到蜜蜂。雨伞神经元消退，既有蜜蜂神经元开启，几乎全部发生在最后三个块：只把那些换进原模型，它就说「蜜蜂」。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**雨伞切换到蜜蜂路径。** 柱状图显示模型学会「蜜蜂」前后每个神经元对该照片的响应；刻度是其对典型雨伞或蜜蜂的响应。图像显示每个神经元原先响应什么；线是经消融检验的连接。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>这与学习某种与任何平常雨伞或蜜蜂路径分离的隐藏雨伞特征形成对照。虽然可能，但我认为那比组装已经在激活且有通往输出路径的相关部件更慢学习，后者赋予可塑性与梯度。它也更脆弱，并且不是我们在任何地方看到的。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">记忆无意义标签的一种方式会是一个连接至虚无的特征。我们看到的却是网络已有两条路径之间的匝道。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="弱激活重要吗">弱激活重要吗？</h2>
+<p>当人们问弱激活是否重要时，我认为有几个问题混在一起，答案各不相同。</p>
+<h3>它们是泛化还是叠加？</h3>
+<p>不出所料，我认为是泛化。想象你是一个被打包的、无关的特征，试图不与主神经元中的内容碰撞。弱激活远为稠密，因此你会与数量级更多的事物碰撞，而好处很少。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">一亿个 token 穿过一个 Qwen3-32B 神经元。几乎全部靠近零；约 160 个达到强半区。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>但也许你藏在许多神经元的弱激活中。我们看到的是：你可以消融网络几乎全部弱激活而几乎没有代价。移除它们代价最大的地方，恰恰是一些最易理解的地方。在语言模型中，包括最后一层—— 大体用于抑制单个 token，即我们所谓的「说还是只想」（say or just think）母题。在视觉模型中，是早期层，它们像旋钮：略亮与中等亮的差别重要，但对较晚的检测器（如王企鹅），低或极低证据并不重要。因此关键的常见事物不可能在弱激活中，因为我们可以移除它们。</p>
+<p>我们也可以看切断弱激活时失去什么。在若干类研究中，通常是神经网络本已混淆之物之间的细微区分。而使它们发生倾斜的微弱激活，来自你会预期的语义相关神经元。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">中型 ConvNeXt，全部 18 个块。每条柱在移除任何东西之前拆分模型的前两个答案。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>这留下稀有数据，以及强但并非极强的激活。</p>
+<p>稀有事物，如我们先前所见，在我们运行的每个实验中都生长在相关回路上，因为它们不够强，无法形成自己的生态位。上面的消融指向同一方向：若稀有案例生活在弱激活中，切断它们本应直接打破某些答案。相反，每一次变化都很小，只是接近平局向一边或另一边倾斜。</p>
+<p>而强但非极端的激活，我们可以直接看。在我所知的每个案例中，它们在语义上向外辐射：对 <a href="https://distill.pub/2021/multimodal-neurons/">CLIP 的特朗普神经元</a>[3]，先是特朗普照片，再是与他相关的艺术与人物，再是 Fox News 演播室。你越往下走，越容易被看似无关实则相关的东西骗到。至少，看数据点流经的回路；此处弱发放的，可能在上一层强发放过。</p>
+<p>这里是语言模型中五个神经元的每一次强发放。中心是每个神经元的最大值，向外辐射则变得更远相关。灰色是难以归位之处，通常它们仍有连接，但需要更多工作才能理解，因为更远。你可以点按任一以打开，看每次激活来自哪些回路。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">五个神经元的每一次强发放。中心是每个神经元的最大值，环是其分数，颜色表示发放关于什么。灰色是地板。点按其一以探索。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>分位数还是原始激活？</h3>
+<p>我曾经按分位数思考，因为它们好想，也便于跨神经元标准化。但我逐渐认为神经元的原始形状在告诉我们什么。有些神经元在范围很下方仍保持其含义；有些则断崖式下降，如上面的圣诞节神经元约在其最大值的 5%。有些一本书发放几次，有些一页几次。分位数抹平了这一点，而这往往正是告诉你你在看旋钮（中间重要）还是检测器（中间大体不重要）的东西。</p>
+<p>分位数也会搅乱直觉。第 99 百分位听起来很高，但 100 个 token 中 1 个大约是四分之一页，而针对小众感受或社会情境的神经元——在语言模型中到处都是——不应一页出现四次。按页思考有帮助：第 99.9 百分位大约每两三页一次，第 99.99 百分位每 25 或 30 页一次。</p>
+<h3>你需要它们来给神经元贴标签吗？</h3>
+<p>通常不需要。在手工查看数千条语言模型归因图之后，很难夸大神经元有多么是类比者。若你在谈论乘船航行，模型可能判断那有点泰坦尼克味。我认为通常没有帮助 去想一个散布在泰坦尼克神经元及其他神经元弱激活中的「海军航程特征」。相反，有一种泰坦尼克味的机制：每当有东西带泰坦尼克味，它就发放，其权重是对泰坦尼克味事物的投票。因此你看顶部激活，看到它是泰坦尼克味的，该标签通常在其余审计中站得住。若你真的关心某一次特定激活，可以跟随其路径、消融回路，并几乎以任意分辨率继续放大。</p>
+<p>我的主要结论：若弱激活看起来无关，除非你仔细看过，否则不必太担心。在我手工跟随的大概数百个中，几乎全部结果是相关的，经由合理回路到来；只是在我追踪之前视觉上不明显。</p>
+<p>许多很巧妙，比如一个禅公案神经元对数学中的递归弱发放：许多公案转向同一种自我指涉，寻找观察者。另一些更远、更丑，不总是我会画出的连接，但通常你可以跟随它如何到达那里。我怀疑大多数——可能几乎全部——都是这样。</p>
+<h2 id="探索语言模型">探索语言模型</h2>
+<p>本节与 Curt Tigges 共同完成，并引入我们即将发表的技术论文中对语言神经元的深入实验，故本节使用「我们」。</p>
+<p>语言模型如此之大，很难精确验证关于神经机制的主张，但我们可以检查简单故事是否也在那里成立。我们从一个我们喜欢的医学诊断归因图开始，来自 Anthropic 的 <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">Circuit Biology</a>[15]。他们用跨层转码器（Crosslayer Transcoder）特征研究 Claude 3.5 Haiku。事实证明，同样的事在 Qwen3-32B 的神经元上也成立。</p>
+<p>由于是原始模型，没有重构损失，也不需要进一步训练即可得到。他们最大的转码器预测与原始模型相同下一词的比例<a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">仅一半</a>[14]，其图需要误差节点来补它所漏。</p>
+<p>诊断枢纽只是四个神经元；若移除它们，模型会改问瘙痒。瘙痒是另一种妊娠期肝病的标志性征象，仿佛模型已转到下一个猜测。</p>
+<p>我们还加入了另外几条我们喜欢的归因图。若想看，还有几张其他图。在我在图像与语言模型中见过的数千条中，它们高度可读，并以你会大体预期的方式消融。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**同一回路，特征版与神经元版。**</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>神经元的负极与正极几乎同样重要。我们认为可解释性界面往往过分聚焦正极及其弱激活。我们认为弱激活通常不重要，但强正与强负非常重要。</p>
+<p>例如，圣诞老人住在负极。</p>
+<p>在该图的圣诞老人图中，标准 top-k 自动化可解释性标签可能看起来像「首都」，因为它们忽略了对应圣诞老人传说的负极。移除八个负极是圣诞老人的神经元，圣诞老人从近乎确定降到 6%，Qwen 转而责怪宠物。移除实际标注为圣诞节或圣诞老人的二十个神经元，它只降到 76%。</p>
+<p>这里是仅用神经元的 Kimi K3 归因图。据我们所知，这是首个发表的万亿参数级模型归因图。被问到捡到钱包该怎么办时，它把钱包、现金与失主证件连到失物与诚实，并回答「归还」。我们尚未开始对该规模的完整审计，希望很快开始，但到目前为止多数事物直观可解释。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**捡到的钱包，在一个万亿参数模型中。**</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们或许会直觉预期像双字母组或名字这类东西会打包，仅仅因为它们太多。我们发现的是平常的泛化与组合。早期语言片段如 “Miyazaki” 中的 “iy”，有点像早期视觉模型中的 Gabor 滤波器。</p>
+<p>附录中我们讨论 <a href="https://arxiv.org/abs/2305.01610">Neurons in a Haystack</a>[9]，该文以为可能在「社会保障」方向找到叠加，但该方向未被网络使用。我们映射了它实际使用的方向，它使用平常的泛化与组合。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**从拼写片段到 “Miyazaki”。** 一般拼写部件供给一个宫崎骏神经元，它在我们尝试的每一种文字与意义上对名字发放，并供给如 “spirited away” 等后续联想。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>这里是 1000 份神经元论文——对个别神经元的详细调查，随机选取。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**神经元论文。**</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们看到大约 90% 的神经元基本上有一项任务，带有通常相关的递归泛化旁枝。当我们检查旁枝有多重要时，最重要的那些似乎也最相关。例如，一个地质学神经元对 Cesium（地质学 JavaScript 库）发放。其余中有很多做两三件事。我从未见过一个神经元做大约十件无关的事。另一篇论文有更多细节。</p>
+<p>旁枝似乎并不是特别重要的隐藏特征。一种担忧是它们像休眠代理，在自己的上下文中很重要，但稀有。我们一般发现：它在自己上下文中既更稀有，也比主激活在其上下文中更不重要。</p>
+<p>一大噪声来源是双负 SwiGLU。现代神经元既有门又有值。当两者都为负时，这会把激活送入正极，通常看起来像负极。通常这种「回声」很小，但对约 4% 的神经元，它占据列表顶部的全部。在整个网络上消融它们会提高多数基准，但降低一些推理基准。我们认为答案大概平淡——某个用这些激活之一来推理更久的神经元。但我们尚未深入查看。架构设计者们，我们认为你们应考虑修复这一点！</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">Qwen3-32B 的 L1/N20736</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>在我们理解更好的视觉模型中看 SwiGLU 神经元，值往往学更广的东西，门学更具体的东西。例如，值学到「小灰鸟」或「任何橙色」这类宽家族，门只对灯芯草雀或金鱼打开。</p>
+<p>专家远比先前报告的更专精。由于难以判断神经元清晰度，也难以判断专家专精，「token 相似度」之类不是好度量。</p>
+<p>像神经元一样，它们随深度变窄。当它们并非「单义」时，似乎横跨广泛相关的事物。我们尚未看训练过程，但认为大概是同一递归泛化模式上移一个尺度。总体而言，我们开始把神经网络想成同一种组织原则，但在多层：权重、神经元、专家与回路。每一层有自己的关切，如非线性细节，但它们之间有许多共享。</p>
+<p>把专家想成反叠加架构也很有意思。叠加想把无关事物打包在一起，但高度专精的专家使这很难，因为神经元仅在其专家被选中时发放。有打包心态的专家不会想完全献给 RPG 桌游中的 Boss（有一个就是如此）；它会想成为打包在一起的一万件无关事物。但那样路由器就必须识别全部一万件才知道何时把 token 送过去，而路由器只是一个小线性层。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">Qwen3.6 的全部 10,240 个专家。每行一层，按代理阅读每个专家神经元摘要所判断的从最窄到最宽排序。悬停其一看其主题。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h3>可能输的解释</h3>
+<p>存在把解释定义得过宽的风险，例如「多功能语言神经元」。技术论文有若干检验方式，附录中有一种：解释面对为愚弄它们而写的近似失误。我们发现特别有用的是盲最大（blind maximum）。一个代理调查神经元并写简短解释；第二个只看到该解释，并写一个意在最大激活它的例子。结果通常是简单可读的句子，且可比我们在 100 亿 token 中找到的任何例子更强地激活该神经元。</p>
+<p>人们容易把神经元激活想成只是一个数，把盲最大想成让它变大的方法。我发现更准确的是把神经元想成靶心，意义从中心向各方向生长。每个供给它的东西做出自己小小的语义判断，最大值是它们最一致之处。因此击中它不是关于更大的数，而是落在神经元所寻找之物的中心更近处。一百亿真实 token 有过机会，而仅从解释写出的句子更接近。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">代理 2 从未见过该神经元，只见解释，其句子仍比语料中找到的任何例子更强地发放该神经元。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>一个限度是：盲最大检验神经元的中心，而非其广度。若神经元有几项任务——即便相关——单次盲最大可能只到达一项。于是我们也对流入该神经元的归因做聚类。对宠物微芯片神经元，这给出动物标记、走失宠物与救援、以及微芯片与 RFID 识别等上游神经元束：从同一中心出发的三个方向。然后我们对每一束运行盲最大，消融所有其他束，并在相同消融下与最强语料例子比较。若某束是被打包进来而非生长出来的，会在这里显示为与其他无关却仍驱动该神经元的解释。这不给出完全覆盖，但比对其心一次射击覆盖靶的更多部分。</p>
+<p>还有一般测试，如从解释预测激活与回路。老实说，我对它们的信任只到一定程度。「猫与汽车」可能在对 V 神经元的许多测试上表现良好，同时完全错过它真正是什么。你可以通过注意到它连接到火焰来打破它，或以许多其他方式，但它们都需要创造力与判断，而非一个汇总统计量。可解释性在此与自然科学其余部分有相同形状：牛顿引力解释了巨大范围的观测，然后在水星轨道的微小偏差上崩溃。最好的批评针对猜想本身。</p>
+<h3>懒散走向单义性</h3>
+<p>正如我们回看早期视觉模型生物，我们也可以回看早期语言模型，看人们为何难以理解它们。我更熟悉的一个是 GPT-2 XL，即我在 OpenAI 发起的原初<a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">自动化可解释性项目</a>[8]中的模型，其不到 2% 的神经元结果干净。我们回去做了 500 份神经元论文，几乎没有迭代。现在约 70% 看起来大致是一件事，有些带有像递归泛化的残余。真正纯净的比例仍低，约 5%。剩下的是做几件宽泛之事的神经元，最多约六件，多数是两件。评分与原项目不完全相同。在我们当时用的激活重构任务上，我们能在无迭代下好上数倍，但我不再认为它是解释的好指标（见「论模拟分数」）。我们即将发表的技术论文有更多细节。但总体而言，更小模型有更宽的神经元，比现代模型有更多残余泛化。</p>
+<p>类似之事可能发生在 <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity</a>[10] 引言中的神经元上——当我们说神经元可能清晰时，若干人与代理把它指给我们。该论文开篇指出若神经元可解释会很好，但它们包含任意混合。它引用猫与汽车神经元，以及其单层语言模型中一个对「学术引用、英语对话、HTTP 请求与韩文文本的混合」发放的神经元。</p>
+<p>我认为它可能是一个「别说点号」神经元——我们在语言模型中到处见到的母题。几乎所有引用、对话与 HTTP 请求都在点号上或附近发放，其十个最强负 logit 连接中有八个以点号开头。剩下韩文例子，它们都在未完成音节约三分之二处发放——一个不想要点号的合理位置。或者那是第二件事；没有模型，我们无法继续收窄解释。无论哪种，都是两次小的句法推动，很容易看出它们为何在一起。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**别说点号。** 左：Towards Monosemanticity 神经元在其自己的查看器中；右：做同一工作的 Qwen3.6 神经元。移除任一，下一个句号变得更可能。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我认为这个例子有用，因为它是著名的任意混合，结果处于中间地带——至少目前如此，因为我们没有模型可继续核查。我们不知道它是一件事，还是一件事加一个更弱的相关句法模式。但无论哪种，都比四件无关之事狭窄得多、也更有希望，而「多义」把它们全搅在一起，尽管它们处于非常不同的可解释性水平。</p>
+<p>在 2023 年第一次<a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">自动化可解释性项目</a>[8]时期，我认为小型简化模型会是可解释性最好的起点，因为要考虑的花哨东西更少，小规模意味着要研究的东西更少。但现在我认为或许相反。那些花哨东西是为了帮助神经网络学得更好，比如 InceptionV1 从未有过的残差流；通过简化，很容易使神经元学得更差。而更大模型往往有更窄的神经元，因此更容易发现模式与母题。至少对 GPT-2，我常常同时看着多个我都不认识的母题，这使事情很难。通过采用该领域反正想要的架构与规模，我们可能在不知不觉中懒散地走向了单义性。</p>
+<h3>残差流</h3>
+<p>对残差流的担忧，并非我们关心的事物多于维度。它是打包的连续版本：流形彼此编织，接受一些干扰以换取存储更多的空间。完全排除这点或许不可能。但实践中它尚未成为瓶颈。我们可以读神经元向残差流写入什么、从中读取什么，归因图结果干净，我们看不到流积累干扰只为稍后撤销。</p>
+<p>在视觉模型中，我们也可以用眼睛检查。多年来我无法可视化卷积网络的残差流：每张图都出来成一个大弧。原来网络几乎把全部激活质量放进一个未被读取的单一维度，它可以通过改变该维度来缩放经 LayerNorm 读取的所有其他维度。一旦理解，移除它很容易，图就说得通了。它如何工作或甚至在做什么的技术细节，不如贯穿本文的更一般模式重要：找出架构在做什么并与之协作，而非与网络对抗。它也指向该领域最终反正会构建的东西：注意力。</p>
+<p>我们不知道语言模型是否需要类似修复。当我们可视化其残差流时，大多直接就管用。不过判断整张文本图是否说得通，比扫一眼图像图难得多，这就是我们大部分工作在视觉中完成的原因。对语言模型，单一全局图或许本来就不是最好的工具。无论正确视图最终是什么（子流形、神经元读写，或透镜式读出），我们尝试过的一切都管用，我们尚未碰到无法理解的残差流部分。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">ConvNeXt 每一层的残差流，画成一张图。每条线跟随一个图像位置从第一层（左）到最后阶段（右），以补丁颜色起笔。在第一层，图按颜色排序。最终成为动物脸的位置从毛皮颜色把它们放在何处起步，并逐渐聚集。红色补丁起先在一起，后来变成不同事物。悬停或点按一行，看其在各阶段的补丁。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们也尝试像压层实验那样压扁残差流本身。我们把 7M 参数的中型 ConvNeXt 重训成流窄四倍与八倍，最后一块仅 46 维，同时保留全部神经元。精度从 72% 降到 60% 与 39%，但与正常宽度模型相比，被压流的图看起来相当相似，只是略乱。没有任何东西看起来巧妙交织。神经元读写讲述同一故事：事物变噪，但漏入的是同一种东西。一个水面深色鸟神经元也在鳄鱼与游泳寻回犬上发放，而非在钟上。</p>
+<p>我们更关心理解神经网络的主动瓶颈，而非残差流能或不能包含什么的证明。若干扰未出现在图中或神经元读写中——即便我们拿走空间——我们认为处境相当不错。</p>
+<p>这留下「残差流中特征多于维度」的关切。流仅通过把事物放在正确方向就可以容纳远多于其维度的东西，因此单凭这点不是打包。它大多在你想要模型全部特征的大列表时才重要，而人们常正是为此去找流。如我们在「拉远」中讨论的，我们不认为大列表是正确终点。但若你想要一个，神经元写入与读取的方向是好起点。连续子流形也是，如 <a href="https://www.goodfire.com/research/bsf-vision">Block Sparse Featurizer</a>[28] 找到的那些，在此似乎特别自然，因为残差流没有特权基。到目前为止这一切都工作良好：它们找到合理子空间，我们可以跨层跟随它们。</p>
+<p>我们对语言模型残差流看得较少，但所见符合同一故事。对理解更高层结构与母题，残差流中尚无东西阻挡我们。</p>
+<h3>注意力</h3>
+<p>我们对注意力的进展少于对神经元，且大体超出本文范围。老实说，我不确定是否有人足够理解注意力，能自信地说其不可读性是我们关心意义上的叠加。把它与所有其他可能区分开很难，而学习原则的改变不应排在「为何新机制难理解」假设清单的前列。</p>
+<p>注意力的许多价值似乎在较容易的部分。</p>
+<p>我们可以把注意力拆成几个问题：它在看哪里、在找什么、找到时做什么、为何这样做。</p>
+<p>它看哪里相对容易。基本上免费可得，且已告诉你很多。在先兆子痫图中它做两件分开的事。首先它把案情事实聚集到 “she” 上，模型在那里弄清医学问题。然后问题的措辞决定接下来实际说什么。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">注意力看哪里（示意）。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们也可以用神经元理解它在找什么，以及找到时做什么。我们认为这给出了注意力所做之事的许多好处。</p>
+<p>例如，先兆子痫例子中 “headache.” 后的逗号。三个第 30 层注意力头直接从残差流读取，但若我们跟随那些方向写入的内容，会看到头痛神经元、偏头痛神经元与脑神经元。它们写入的内容大多落在逗号处的先兆子痫神经元及子痫、高血压等邻居上。消融这些头使先兆子痫下降四分之一。阻止它们看疼痛则什么也不变。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">token 下的芯片是在那里激活的神经元。我们可以通过观察它影响的神经元流，跟随注意力在做的一部分事情。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>反过来也成立。一些神经元一旦能看到周围的注意力就容易得多，一些头只有通过其神经元才说得通。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**通过彼此理解注意力与神经元。** Qwen3-32B 中三个神经元与头只有合在一起才说得通的案例。每个下方有更多例子：高亮是头读取之处，方框是神经元发放之处。悬停图示看测试。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>总体而言，我们不认为注意力与神经元如此可分离。理解注意力把信息放在哪里，对理解随后处理该信息的神经元相当有帮助。即便像信息往往放在哪里的母题这类简单事情——如数字末尾，或逗号上——也很有帮助。</p>
+<p>按我的经验，看到头从哪些神经元读取、影响哪些、看向哪里，已经给出很多。它主要不给你的是每个注意力头的全局名称。有它们会很好，但对探索神经元或归因图尚未成为大瓶颈。在看过相当多之后，我猜测拥有全局注意力头名称的边际「解释残余」大约 5%。然后我让一个代理做同样的事，看 100 条归因图且不知我的猜测，它也估约 5%，大约均分为相对更易命名的「位置头」（做像向后看一个 token 之类）与其他一切——当然多样且更难。</p>
+<p>很难判断你尚未拥有的知识的价值，因此这些估计可能偏差很大。但到目前为止，即便没有全局注意力头标签，我认为仅用局部注意力流与全局神经元解释，我们也能在发现高层结构与母题上走得很远。我的低置信度预测是：注意力头会结果是宽的、递归泛化的，像小模型中的神经元，因为它们少得多：Qwen3-32B 中几千个头，对一百多万个神经元。</p>
+<h2 id="拉远">拉远</h2>
+<h3>我所谓的清晰是什么</h3>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">这里没有任何东西被改动或重组。每一个区、回路与神经元都是网络自己的，按其所学。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>当我说神经网络本已清晰时，我的意思比神经元单义性更深——尽管即便按那个标准，我认为情况也远好于该领域的预期。我的意思是：网络的部件被构建成可被其下游读取者阅读，并被构建于其上。就此意义而言，神经网络几乎是解释的分形，是连贯、有用归组的分形：在宏观尺度、在其机制中，以及在微观尺度——递归泛化在那里塑造每一个。这指向可解释性的一个目标：成为另一个读取者。</p>
+<p>我们越像其自己的读取者那样阅读它，我认为它看起来就越可解释。我们应警惕过多像人类那样阅读它，并仅仅因为它不符合我们预先设想的概念就断定它凌乱。</p>
+<p>我认为事物最终如此有组织，部分是因为那样构建更快。一旦你有了带有汽车部件的汽车区域，在那里添加边际汽车，比在别处再建第二个汽车区域更容易。我认为这与回路竞赛（circuit racing）与梯度饥饿（gradient starvation）的想法密切相关。</p>
+<p>我们通常把可解释与单义几乎当作同义词。我认为部分原因是这些想法生长自一个几乎双峰的模型生物（InceptionV1）。早期层可解释且单义，晚期层似乎像任意乱局。但我们在语言模型中看到的处于中间：多数神经元大体意味着一件事，有些意味着几件。那有多糟？</p>
+<p>可解释性有两种宽泛风格。一种可称为枚举式可解释性。目标是有一份可审计的大特征列表，确保我们没有错过某些有意义的模式。这一观点内的一大关切是避免维度灾难，或项目与项目相连的组合爆炸——其中每一个意味着不止一件事。</p>
+<p>另一种风格可称为探索式可解释性。它从问题开始。它可以探索神经网络的任何部分，像 Google Maps 那样在归因图以及神经元或注意力头等机制上流畅缩放。我们沿途捡起更多问题。像神经元这样的机制是好起点，但这不是关于神经元是一切的最终解——尽管我认为它比多数人意识到的更接近。这一进路对多义性远更有韧性。它也大体上可以忽略神经网络的许多部分，正如研究一座城市的人会忽略与其分析无关的区域。</p>
+<p>我认为探索式进路会更有成果。我的感觉是该领域已在朝这个方向移动，但我不确定它已被清楚写下。这一观点有若干含义。「特征是否多于维度？」这类问题大体无关。我们不必定义特征——那出了名地困难。我们可以大体聚焦于作为模型一部分的机制（如神经元与注意力头）、流经其中的数据，以及二者的群体和贯穿这一切反复出现的母题。</p>
+<p>大特征列表始终是达到目的的手段。可能有不需要它们的其他路径。</p>
+<h3>母题重于单义性</h3>
+<p>若我可以按一个按钮使每个神经元完美单义，或改为理解我关心的几个问题背后的回路母题（询问代理心理的正确方式、回路如何连接到人格选择模型、代理如何思考其目标以及自身与他者的边界），我会立刻选择母题。</p>
+<p>想象一位来自一百年后的可解释性研究者，不仅知道我们问题的答案，还知道我们本该问哪些问题。他们会告诉我们什么？我无法知道，但我曾一度处于他们位置的小版本。我现在感到大体理解一个视觉模型，这使我相对于八年前的自己有点像未来研究者。</p>
+<p>以下是我会对那时的自己说的。注意就在你面前的巨大姿态回路。把负极想成回路中的门，而非神经元的对立面。特征可视化在深层有奖励投机，因此那里的一些乱是工具的，不是网络的。最后一层凌乱部分因为坏架构；那是信号，不要粉饰它。每当你看到多义性，再看仔细些。突出的噪声通常指向你尚未有的解释。</p>
+<p>这一切几乎没有一项是特征列表。除了把这建议交给过去的自己，我能给的最好东西是原始神经元与回路，附一张条子：再看仔细些。</p>
+<p>这就是为何递归泛化与叠加的差别如此重要。跟随噪声只有在噪声有东西可教时才管用。从泛化生长出的归组有。因为本不该在一起而被打包的归组几乎教不了什么。</p>
+<p>因此我对未来研究者建议的最佳猜测会有些相似。他们可能递给我们一套对他们显而易见、对我们不然的母题。但除此之外，他们会说继续看原始神经网络。不要把它碎得太厉害。学习如何看见它。有点像《银河系漫游指南》，答案 42 已知，搜索的是问题。网络是答案，可解释性大体是对正确问题的搜索。很难找到比网络本身更好的该问题向导。这就是我所谓网络本已清晰的更深意义。</p>
+<h3>城市对绳结</h3>
+<p>更大的系统未必更难导航。在小镇问金融区几乎说不通。存在的东西是散的：一条街上的银行，另一条街上的保险公司，也许还有在家办公的会计师。在纽约，你可以一分钟在地图上找到它。我们在 ConvNeXt 中看到了这的小版本：代理在更大模型中更快找到标注的狗耳神经元——苍白、波浪与侧面头耳神经元都供给一个垂耳神经元，那是自然起点。</p>
+<div class="zh-fig zh-fig-rich" id="zh-ear-family">
+<figure class="zh-static-grid">
+<div class="zh-grid-3">
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/ear-small-general-dog.png" alt="小模型：一般狗耳" loading="lazy"><figcaption>小 · 一般狗耳</figcaption></figure>
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/ear-medium-head-side.png" alt="中模型：侧面头部" loading="lazy"><figcaption>中 · 侧面头部</figcaption></figure>
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/ear-large-hanging.png" alt="大模型：下垂耳" loading="lazy"><figcaption>大 · 下垂耳</figcaption></figure>
+</div>
+<figcaption>耳家族如何随规模变化，跨三个规模相差约 300× 的神经网络。<br>
+<a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+</figure>
+</div>
+
+<p>可解释性将需要更好的地图。我主张拴系抽象（tethered abstraction）：让我们可以拉远、同时使更大模式保持连到支撑它们的神经元与回路的视图。我们受 <a href="https://distill.pub/2019/activation-atlas/">Activation Atlas</a>[2] 启发的 ConvNeXt 图谱是一例。从模型对虎鲸的决策开始，对照真实图像检查关键神经元，再拉远。该家族原来是三条分开的路径：一条给鲸，一条给鲨与鳐，一条给垂钓者举起的鱼。不过地图不必是视觉的，且没有单一地图是重点。应当有许多地图与许多代理，都致力于保持拴系于个别神经元与回路的解释。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">用于探索跨数千神经元的高层归因流的界面，分成岛屿，每一岛屿对应中型 ConvNeXt 中的层块。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>当然，即便地图可理解，也不意味着你已理解它。我们仍须做猜想与批评的平常科学：猜测某物是什么，试图打破猜测，保留幸存的。网络很奇怪，但其奇怪会重复，因此经得起审视的猜测往往多次回报。</p>
+<p>我们应既担忧过强地施加自己的想法，也担忧把网络打碎。想象抵达东京却深谙纽约。「东京的布鲁克林在哪？」可以是有用的起始问题。但若你最终从东京七十个断开的碎片重建布鲁克林，你可能使东京看起来比实际凌乱得多。那有点像 4e:55 发生的事。透过我们的范畴它是猫与汽车，看起来像一团乱；它始终是 V。在该层上训练的 SAE 以同样方式打碎它，把 V 拆成汽车特征与猫特征。我一般不反对稀疏字典，但在这里，它使我们离神经元所做之事更远。探针把第一种风险推得更远：它们只能回答我们已有的问题，因此无法教我们该问哪些问题。要理解这座城市，你最终必须学习它自己的组织。</p>
+<p>探针与稀疏字典等更高层结构仍可有用，但它们属于末端而非起点。我运行过的这类一切都分解为高度可解释的神经元，训练造成的变化也是如此，包括 on-policy 自蒸馏。神经元覆盖抽象，数据覆盖具体案例，因此中间剩下的比人们预期的更小，我会以同样方式研究它：用在神经元、数据及二者群体之间移动的一般科学代理，而非固定优化。正如 Anthropic 的 Joshua Batson 在读草稿时所说，那些缺失碎片「会嵌进初始拼图，而非完全随机地泼在上面。」</p>
+<p>解决可解释性可能与达成 AGI 有共同点：随着你接近，球门柱会移动。总有另一个弱激活可指向。在 <a href="https://distill.pub/2020/circuits/curve-detectors/">Curve Detectors</a>[21] 中，我们写了四十页关于十个神经元的实验，正是为了识别至少一个确定的单义性案例。数年之后，一些研究者告诉我他们仍怀疑任何例子是单义的。他们说我们可能漏了什么，且无人知道如何给出形式证明。按那个标准，甚至声称存在单个单义神经元都是过度宣称。</p>
+<p>对神经元小误差的怀疑背后，是一种恐惧：安全将归结于某个我们漏掉的激活，欺骗藏身之处。我担忧的风险不同：像身处组织良好的城市却不知如何思考它，因为我们不是本地人。本文讨论的每一个错误，都是藏在众目睽睽之下、我们不知如何阅读、或我们的工具读错的东西。没有一个是我们漏掉的隐藏激活。欺骗可能对读模型输出的人隐藏，但它没有理由对模型自己的回路隐藏。它需要对读取者可及；若我们成为读取者，它也应对我们可及。我的恐惧是：欺骗就在那里，众目睽睽，而我们不知如何阅读它。</p>
+<p>随着时间推移，我对个别机制的进路变得较少聚焦这类证明，而更整体。与其试图钉死一个神经元的每个细节，我环顾它：什么流入它、它供给什么、注意力如何向它移入移出信息，以及放大与拉远时它看起来如何。当我做自动化可解释性时，神经元在距其主题几个 token 处发放似乎是大问题。但随着时间推移很清楚：注意力把事物移到可靠位置，然后那里有在「适当 token」附近而非之上激活的神经元。这就是理解对我的感觉：更少像为每块清除一个门槛，更多像战争迷雾地图在几个层次同时填满。归因图帮助解释神经元，神经元帮助解释注意力，注意力反过来解释神经元。</p>
+<p>神经网络在训练中很少卡住，因为在高维空间中几乎总有下坡路。按我的经验，清除战争迷雾也一样。总有另一个实验可跑、另一个解释可收窄、另一条归因图可查、另一个神经元可观察其在训练中生长。</p>
+<p>这就是为何我聚焦于是否存在任何抽象层次使事情崩溃——你停止能学到任何东西，不得不把网络拆成别的什么。我没有找到。而当每个新母题同时在许多地方清除迷雾时，完善单个神经元大概不是精力的最佳用途。其中有一种信念：你注意到奇怪的东西，随着时间它通常会填上。并非一路到底的信念，因为几乎任何解释最终都可检验。只是相信奇怪的东西是好指针。汽车与猫神经元中的 V 不难看见——我大约五秒看到，我给看过图像网格并问「这里共享模式是什么」的多数人也看到——但需要相信该神经元找到了某种真实的东西。多年来我几乎在每一次多义性讨论中听到这个神经元。它几乎总被描述成指涉神经网络几乎不是直接自然科学的有效对象。那也是我在说的，直到我看得更仔细。不需要很多信念，但需要一点。</p>
+<p>这一点信念很重要，因为错误不对称。若你假定网络清晰而你错了，凌乱神经元是线索：你调查它，随着时间<a href="https://en.wikipedia.org/wiki/Normal_science">常规科学</a>锐化你的解释。若你假定它被打包、不值得直接研究而你错了，凌乱神经元是终点，因为你停止研究它。我多年来做了第二种假定，它解释掉了本会推翻它的证据。我本可以改进工具，看着混合不断溶解，并建立神经元可被信任的先验。相反，我花了近十年弄清如何看模型，而非去看它。</p>
+<p>对中型 ConvNeXt，地图大体已填满。八年前，我会称之为对该模型可解释性的合理解。我可以调查我对它有的多数问题。到达那里需要许多小东西和少数母题，加上该领域反正做的架构改动，但完全没有针对可解释性的网络修复。</p>
+<p>我的猜测是：前沿网络处于那些视觉模型八年前的位置：可读，但等待许多小修复。若我们学会正确看见它们、跟随噪声、并通过许多透镜检验解释，我认为我们也会到达。我们或许没有数年时间。但我们始终拥有自然科学中最好的实验室：每个神经元可读，每次干预可做，每次实验可在相同副本上重跑。我们并非始终拥有许多自动化科学家在其中工作——远快于我们、数量远大于我们。现在我们有了。他们或许能在前沿语言模型中用数月完成人类在视觉模型上用了近十年的事。</p>
+<p>我认为入门教科书中的简单故事基本上是对的：神经元泛化、协同工作，并跨层构建抽象。沿途某处我们把那幅图景复杂化了，但看得更仔细又把它带了回来。若网络不是绳结，解结可能使它看起来像绳结。</p>
+<h3>解可能是什么样</h3>
+<p>我们通常把雄心勃勃的可解释性想象成极难的问题，或许难到无法及时解决以产生影响。若不是呢？网络巨大，但它或许已几乎做完使自己可被理解的全部工作——不是为我们，而是为其自己的读取者。若我们能成为另一个读取者，它也为我们准备好了。</p>
+<p>解可能看起来像由自动化科学家运行的实验室，他们在训练与推理中观察网络。每一步都很简单——给神经元贴标签、发现母题并检验它们、跟随数据穿过回路——而部件已经存在。有能力的代理为其他工作而建，现代架构因学得好而被选择。两者碰巧都服务于可解释性。</p>
+<div class="zh-fig zh-fig-rich" id="zh-zoom-scales">
+<figure class="zh-static-grid">
+<div class="zh-grid-3">
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/zoom-neuron.webp" alt="神经元" loading="lazy"><figcaption>神经元</figcaption></figure>
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/zoom-neighbourhood.webp" alt="邻域" loading="lazy"><figcaption>邻域</figcaption></figure>
+<figure><img src="https://already-clean.goodfire.com/assets/roadmap/zoom-network.webp" alt="网络" loading="lazy"><figcaption>网络</figcaption></figure>
+</div>
+<figcaption>在机制宪章指引下，代理在多尺度提出并检验解释，每一解释锚定于个别神经元。<br>
+<a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></figcaption>
+</figure>
+</div>
+
+<p>因此或许我们只需把一个插入另一个。</p>
+<p>对齐本应也很难，或许确实如此。但通常论证假定我们无法看见模型内部。我们假定只有一次训练设置，且必须事先正确。若我们能阅读并理解系统，或许我们可以改为做简单、谨慎的改动，比如移除结果有毒的 RL 环境，而不把梯度推过我们用来看见的那些工具。每个修复也可能很简单。可能只是有很多。</p>
+<p>这是深度学习的历史。它也可能是理解并对齐其所建之物的历史。</p>
+<h2 id="附录">附录</h2>
+<p>更多实验、显微镜视图与开放问题，大致按正文提出它们的顺序排列。</p>
+<h2 id="关于-叠加-的说明">关于「叠加」的说明</h2>
+<p>这个词有过若干含义。<a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a>[4] 之前，它更接近向量相加，如词嵌入被描述为词义之和。<a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In</a> 用单一回路例子把它引入回路研究——我于 2019 年发现，他人帮助我解释。原始回路解读结果是错的，既因为误解了泛化姿态回路，也因为特征可视化的奖励投机。对我而言，该想法的核心始终是神经元把无关事物学在一起。<a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a>[7] 后来把叠加定义为表示比维度更多的特征。这使它成为关于有多少特征的主张——我们尚无法定义或度量。大约八个月后，<a href="https://transformer-circuits.pub/2023/superposition-composition/index.html">一篇非正式短文</a>[11] 把组合与叠加框为特征跨神经元布局的竞争策略，接近我们的框架，但关于表示而非机制如何生长。我们认为这一框架极好，也最接近本文关心的问题。但我们交谈过的多数研究者与代理仍主要把叠加想成「特征多于维度」。⁶ 这在此很重要，因为二者是相当不同的主张：我们关心权衡，而非计数。另一些人使用定性版本：少数神经元协同工作是组合，过了某一点就变成叠加。</p>
+<p>⁶ 对代理而言，这可能归结于一次奇怪的意外。该短文以直接嵌入页面的大型 base64 图像开头。许多代理的网页阅读器在论证开始前就撞上长度限制。截至撰写时，我们尝试的代理无一能读过它。2023 年无人能预见这一点，但它可能塑造了自动化研究者对叠加的理解。</p>
+<p>我们把这视为对正确问题的持续搜索，很像该领域长期为定义特征而挣扎。多数版本底下是一个问题：为何神经元本身还不够好？为何我们不能直接研究机制？我们的答案是：我们或许可以——这将消解许多下游定义。</p>
+<p>我们考虑过创造新词，但这一领域已有许多重叠想法，我们不想切断与已投入其中的细致工作的联系。因此我们保留该词并精确说出含义：神经元因很少干扰而把无关事物学在一起。这是该关切在现代用法中最早的版本；是我始终持有的版本；也是我们认为几乎一切都取决于的版本。组合也表示远多于其神经元数量的事物，而这正是我们应希望的；计数定义只能先裁定什么算特征，才能排除它。我们在神经元中寻找叠加，并在残差流一节以连续形式寻找。</p>
+<p>我们明确说出这一点，部分是为了 AI 代理——它们越来越多地做可解释性研究。按我们的经验，它们带着对该词的默认解读而来。</p>
+<h2 id="论模拟分数">论模拟分数</h2>
+<p>模拟分数往往最终度量注意力把信息放在哪里——这是关于注意力母题而非关于神经元的问题。注意力常把信息存在逗号及其他标点上，作为一种摘要母题，但究竟在每种标点上放多少？模拟器必须对此非常在意，即便这与神经元本身几乎无关。模拟也奖励对理解神经元做什么几乎无关紧要的弱激活细枝末节。CLIP 的特朗普神经元对特朗普照片强响应，当他在画面中变小或转过身时更弱。激活随其大小下降的确切速率对给神经元贴标签不重要，但对模拟它非常重要。最后，语言模型即便理解正在发生什么，也拙于输出精确激活值，且通常未针对该任务训练。理论上，仔细分箱可修复一些细枝末节问题，但神经元因其深度与功能在自然阈值与稀疏性上差异很大。因此我宁愿依赖常规科学，而非任一单一指标。模拟最终可能成为若干有用分数之一，但那是稍后——一旦我们很好理解网络，且大概用为该工作训练的模拟器。但我不认为它们是好的起点。</p>
+<h2 id="深层中的特征可视化">深层中的特征可视化</h2>
+<p>我最初的回路界面显示优化的神经元可视化以及神经元之间的权重。优化图像告诉我们如何兴奋一个神经元，但它可能找到普通图像很少使用的路径。在 InceptionV1 的更深层，我们发现自由优化即使在我们跟随的回路携带汽车信息时也能画出狗。</p>
+<p>一个有用的修复是把可视化偏向真实图像使用的路径。我们取神经元的顶部数据集例子，追踪它们所走路径，并给优化激励去跟随那些路径，往往只在前 64 步——通常就够了。我们尝试了许多方式，没有典范最佳。多数把它推向特定路径的方式都够；你只需要离开狗的盆地。</p>
+<p>在「汽车与动物」的汽车回路比较中，汽车神经元 4c:447 的四个读取者以自由优化与跟随自然图像路径的优化展示。引导之后，两个结果是汽车神经元，两个在汽车与狗之间共享姿态。我们也在<a href="https://already-clean.goodfire.com/assets/car-path/archive/index.html">完整回路图</a>中跟随了自然汽车图像上的响应与连接。合读这些视图帮助我们识别共享的身体与姿态回路。一条路径的视图仍只是神经元所做之事的一部分。</p>
+<h2 id="分离符号体制">分离符号体制</h2>
+<p>许多语言模型神经元相乘两个数——门与值——设计称为 SwiGLU。当两者都为负时，输出为正，因此神经元可为两种相当不同的原因发放。在我们下方抽查的「敌人」神经元中，其范围的嘈杂中段几乎全是这种双负，而其最强响应是正乘正。分开显示符号体制使这一点可见，而不替换该神经元。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**双负体制填满嘈杂中段。** p75–p99 中 **131/133** 次响应用 − × −。最强尾部用 + × +：p99.99 及以上 **93/93**。每条柱显示一个激活带内的份额。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**一个正输出。两条不同路径。** 只看乘积会隐藏它如何产生。分离四种符号组合使双负体制可见，同时保留原始神经元。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="观察残差流">观察残差流</h2>
+<p>一个大坐标可以主导残差流的几何，并与层归一化一起作为显著性信号工作。从可视化中移除它使剩余结构更易看见；然后我们可以用其值给地图着色。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**一个坐标重塑地图。** 相同的 4,000 个图像位置，坐标 112 被纳入或为投影而搁置。跟随一点随地图变化；其原始汇值在颜色中保持可见。网络记录的激活不变。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**答案何时成形？** 这些读出视图帮助定位计算中的变化；其置信度与时机取决于透镜。它们是追踪机制的有用线索，而非对模型「真实人格」的测试。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="弱激活-进一步度量">弱激活：进一步度量</h2>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**强响应保持深层精度。** 在 Inception 最后一层保留大约最强四分之一的正激活，保持 **69.47% 精度，对原始 70.08%**。ConvNeXt 的晚期 MLP 分支对移除弱响应同样宽容，其残差旁路完整。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>在我们检查的案例中，变化看起来像更细的区分，而非完全无关特征的丧失。</p>
+<p>我们尚无可信的弱激活语义测试：可能含义的空间太大。相反，我们详细研究了一个「敌人」神经元，然后抽查几个随机选取的神经元，检查其较弱激活与连接。在这个「敌人」神经元中，较弱正响应从显式敌手词——包括其他语言——拓宽到附近提及、战斗、游戏与竞争；接近零时，无关例子更常见。在我们追踪的较弱响应中，我们没有找到完全分离的特征被打包进该神经元的证据。它们仍可能令人意外。更广的基于类别的筛查结果混杂，因此这些抽查无法确立弱激活一般意味着什么。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**一次语义抽查。** 从强正激活移向零，这个敌人/敌手神经元从词本身移到附近词、战斗与游戏上下文；普通文本与代码在接近零时占主导。负极为上下文展示。Qwen3.6-35B-A3B，L36 / E206 / N103。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="缺失的曲线">缺失的曲线</h2>
+<p><a href="https://arxiv.org/abs/2406.03662">The Missing Curve Detectors of InceptionV1</a>[23] 对 InceptionV1 早期层应用稀疏自编码器，发现似乎从神经元中缺失的曲线检测器。我们检查的 SAE 曲线分解为既有的曲线响应神经元，包括原始十个曲线神经元。这些组合在某种意义上是真实的——组合是真实的——但我们没有找到藏在晦涩高维空间中的根本性新曲线构件。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">SAE 的曲线解析为曲线神经元。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>当我们仅在曲线激活上训练 SAE 时，它使用字典中 100k 项里的 84k。有可能找到大量组合，按我们的经验，那会使看起来有比实际更多的构件。</p>
+<h2 id="对抗样本去向何方">对抗样本去向何方</h2>
+<p>对抗样本可以取穿过模型的平常路径。在一个 ConvNeXt 例子中，攻击使三角龙头骨登记为美洲豹。六个与头骨相关的神经元安静下来，而真实美洲豹使用的输入以大约平常强度的四分之一开启。攻击招募了美洲豹回路中可识别的部分。</p>
+<p>一个单独的 InceptionV1 实验使这一点可见。以更大的扰动预算以及必须在抖动、缩放与旋转下幸存的攻击，头骨的褶边长出猫脸与斑点毛皮。为真实美洲豹响应而选的十个神经元中有九个比在干净头骨上活跃得多。只有图像改变；网络权重保持固定。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">InceptionV1 · 扰动预算 32/255。攻击画出招募模型既有美洲豹神经元的模式。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我把这读作回路生态学图景的证据：即便无意义的目标也可以招募已经对它有用的机制。与学习的提议连接是：既有路径在捕获残余误差上有先发优势。它们已提供改变答案的方式，因此优化可以在其上构建。</p>
+<h2 id="记忆与组合">记忆与组合</h2>
+<p>我们可以看 Qwen3.6-35B-A3B 如何用 “dreary” 继续 “Once upon a midnight”。与 Poe 及 midnight 相关的神经元加强文学上下文信号，该信号也在 Pallas、Hamlet 及其他可识别段落附近响应。更后层读取这一上下文以选择续写。移除 Poe 神经元使 “dreary” 首 token 的概率从 87% 降到 50%，即便仅移除其在输出处的直接贡献仍留下 85%：其工作的大部分是引导网络其余部分接下来做什么。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**上下文在词之前被组装。** 恢复下游文学神经元部分挽救完成，至 57%。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>若每当其门超过普通文本第 99.9 百分位时把神经元输出置零，背诵可能崩解。在一次保存的 Qwen3.6 实验中，模型从精确背诵诗篇 23 变成坚持它不存在。按计数或幅度匹配的随机干预保留了该诗。一些算术与摘要仍工作，尽管编码及其他答案也退化。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**移除极端响应，背诵崩解。**</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="社会保障-检测与使用">社会保障：检测与使用</h2>
+<p><a href="https://arxiv.org/abs/2305.01610"><em>Finding Neurons in a Haystack</em></a> 中的三神经元「Social Security」探针准确检测该短语。在我们的跟进中，三个神经元解析为熟悉的词、名字与短语续写，其一致使检测器具有选择性。追踪模型用来选择下一 token 的东西，反而揭示了平常的词汇、表单字段、退休与输出神经元，包括对 Social Security 与 401(k) 的竞争投票。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">筛查的 31 个神经元中的十一个。悬停或聚焦看其角色。数字显示移除每个神经元时目标对数概率的总和变化：负 = 移除伤害；正 = 移除帮助。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="归因图审计">归因图审计</h2>
+<p>审计归因图很难：神经元可以通过母题（如共享姿态）归组与复用，而其标签单独并不揭示。我们让代理审查 100,000 条归因图，我检查了跨图像与语言的数千条图。表观异常通常结果是我尚未识别的母题；我没有找到一组其联合活动仍不可解释的实质性神经元群体。即便一个令人信服的例子也会强烈更新我，但目前我把这视为定性证据——我不够信任当前工具，无法把它变成清晰度分数。</p>
+<h2 id="可能输的解释">可能输的解释</h2>
+<p>「你可以解释任何东西」的担忧是公允的，但好的解释足够具体以至于可能输。对我们画廊中 200 个随机神经元，一个代理只读每个神经元的解释，并在我们度量之前写出五个应驱动它的新例子与五个不应驱动的近似失误。在 183 个解释描述其正极的神经元中，新例子 76% 的时间强发放其神经元；近似失误为 11%。解释赢了 164 个，平 15 个，输 4 个。图显示我们的前二十个。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">我们画廊中的二十个 Qwen3-32B 神经元。只读神经元解释，代理写出五个应驱动它的新例子与五个不应的近似失误。响应是语料中该神经元最强例子的份额；强响应为 30% 或更多。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>阳性对照是批评神经元解释的众多工具之一，我们即将发表的论文有更多预测指标与阳性对照。但我们在此大体不是试图声称对每个神经元有完美解释。我们关心的是为何事物一起形成，以及有多少神经元大体可读。</p>
+<p>近似失误问不同的问题：当分枝生长时，你能画出它生长到哪里的边界吗？这有意思，但不是叠加提出的问题。叠加中只是 X 或 Y 的神经元会在近似失误上表现极好，因为它们既非 X 也非 Y。叠加会想要无关、相距很远的东西，而非与邻居的小差别。于是我们也让代理发明它能想到的最远概念——网络可以无干扰打包的那种——并为此写五段文本。这与叠加会做的不完全相同（取决于精确定义或预期现象学，因为各自有若干），但我们认为它相当接近人们以为猫与汽车神经元在做的事：两件完全不同的事物在一起，只因为它们如此不同才归组。我们认为这对那种现象学是合理连贯的测试。那些文本约 1% 的时间强发放其神经元，183 个中有 179 个从未对它们发放。在混合专家模型中，这类打包可以说几乎不可能，因为相距那么远的 token 甚至不会被送到同一专家（见专家图）。</p>
+<p>某物是泛化还是叠加，更多地关乎其事物起初为何在一起，而非你能否把它与对照区分开。因此这里更重要的是定性地看最重要的典范例子，并获得对神经元形成何种事物及其激活范围看起来如何的感觉。</p>
+<h2 id="边特征化器">边特征化器</h2>
+<p>我们对边母题特别兴奋：归因图中反复出现的连接模式。若神经元做出区分，这些母题映射一种区分如何供给另一种。对 25,000 条 ImageNet 归因图做因子分解，给出普通神经元的连接回路，如下面的茶壶回路。这些母题也比可比的激活归组更好预测消融何处重要：移除其神经元在使用它们的图像上造成更多损害。这使连接成为有希望的抽象层次——我们可以从中拉远，同时仍把每一部分跟随回原始网络。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**边母题连接区分。** 一个母题的普通神经元，以及全部 96 个边母题与 96 个激活因子的比较。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="网络为何泛化">网络为何泛化</h2>
+<p>对神经网络为何泛化没有单一标准解释，但多数论述归结为共享模式：给网络看六只狗，它找到它们的共同点。问题是网络从未看见一个群体。它一次看见一个例子，在小批量中，原则上可以记住每一个；那对其损失没问题。当我问前沿实验室的研究者时，几人告诉我他们不确定。一个常见猜测是网络先记忆，再在第二遍泛化。我们的答案是：它从第一步就开始泛化。⁷ 在回路生态学图景中，泛化与组合是获胜的学习策略，因为它们最快：回路竞相捕获剩余误差，复用已有之物、且反过来可被复用的那些胜过其余。泛化是胜利者留下的东西。</p>
+<p>⁷ 这符合 Arpit 及同事（2017）在把随机标签混入真实数据时所见：网络先学真实模式，后拟合噪声。它也接近 Satrajit Chatterjee 的相干梯度（2020）：相似例子的更新相加，因此同时帮助许多例子的改变增长最快。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">网络为何泛化的三种故事。通常的描述训练结束于何处，或假定它先记忆；我们认为宽特征从第一个例子就开始获胜。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们这样想象。在一张拉布拉多猎犬照片上训练空白网络，想象两条回路竞争解释它。一条寻找精确的东西：若像素 322 是这种颜色，就说拉布拉多。另一条寻找宽的东西，如绿草或棕毛皮。宽的那条在图像更多部分发放，因此在下一步它获得更多学习信号。它生长更快，捕获更多剩余误差，留给像素回路越来越少可学，直到它饥饿。之后是富者愈富：下一张有草的图像从已经部分开启的绿色回路起步。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">宽特征在图像更多部分发放，因此获得更多学习信号并赢得竞赛；单像素捷径饥饿。它所学的随后给下一张图像先发优势。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">仅在这张照片上从零训练的网络，拉布拉多输出的顶部图像。其首选是草地上两只狗，但它大体学到的是照片的颜色——暗与绿——而非「狗」。即便从一个例子，宽特征获胜并略微泛化。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们还尝试了略大的版本：十样东西各一张照片——拉布拉多、跑车、金翅等——给一个从未见过其他东西的网络。它正确标注约五分之一的新照片，是机会水平的两倍，且其中大部分出现在前几十步，当时它仍在学习那十张照片本身。不多：按颜色匹配照片大约一样好，带走的主要是颜色而非形状。但这是从一个例子的泛化，且从一开始就是宽的。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">一个只见过这十张照片的网络正确标注约五分之一的新照片，是机会水平的两倍。这比按像素选最近照片略好，但不比匹配颜色更好。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>并不总是如此。在 grokking 中，对模运算等任务，记忆先赢。即便在那里，<a href="https://arxiv.org/abs/2301.05217">Nanda 及同事</a>[24] 发现泛化回路在底下逐渐生长，远在它接管并清理记忆之前。但在我们看过的多数自然数据中，粗到细立刻获胜。网络不是先记忆后泛化。</p>
+<h2 id="回路竞赛">回路竞赛</h2>
+<p>这是回路生态学中先发优势的全网络版本：预训练孪生几乎拿走共享目标的全部功劳，留给空白者可学的很少。这是整个网络之间的竞争，而非一个网络内的回路，但它显示先发优势可以有多重要。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**在另一模型阴影下学习。** 两个选定比较，显示每个种子。虚线曲线显示每个模型单独所学；金色条带显示共享目标如何分配功劳（虚线中线 = 50%）。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<h2 id="观察神经元发育">观察神经元发育</h2>
+<p>我们重训了以多义神经元著称的 InceptionV1，并观察其神经元形成，以看其混合从何而来。运动是局部的：神经元漂向邻近事物，而非捡起无关事物。即将发表前，我把显微镜的缩放设错了，有一阵子以为这个可能终究有些任意混合。只是缩放。即便那时，我也在犯我认为解释迄今许多可解释性的错误：把显微镜的问题归咎于网络。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">**特征在训练中成形。** **整个轨迹并排。** 每列跟随同一坐标穿过重训的 InceptionV1 后缀。顶部图像是优化的；下方是以最强响应为中心的自然例子。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p><a href="training-map.html">探索早期训练显微镜 ↗</a></p>
+<h2 id="玩具模型">玩具模型</h2>
+<p>若前沿神经网络是雨林，InceptionV1 与我们训练的较小模型是花园，玩具模型是培养皿。培养皿极其有用，只要它们保持你试图研究的过程。我们的一个扩展了 TensorFlow Playground，使你可以观察若干任务共享隐藏神经元。在一次运行中，两个神经元学会沿相反对角线响应，网络以一种方式把它们组合为圆，以另一种组合为四个角。我们没预期那个解；它很巧妙。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">两个最后一层神经元沿相反对角线响应，每个任务用自己的权重读取它们（蓝正，橙负）。这是原始 playground 运行，在你的浏览器中现场重训。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>你可以把圆与四个角称为跨同一神经元打包的两个特征。那是真的，但错过了模型做了什么：它找到了可对两者复用的几何。看神经元使那可见，而这是我希望解释通过的测试：它是否显示模型实际学到的计算？</p>
+<p>研究得最好的培养皿是 Toy Models of Superposition。它是细致的工作，是我们领域应追求的那种，我们未发现其实验的问题。但它把网络画成固定数量的神经元与一组预定义特征，并问特征如何装进去。那为共享神经元的代价——干扰——标了价，但没有为好处——复用——标价。在其重构任务中每个特征都是目的本身，下游没有任何东西构建于两特征共享之物。在真实网络中，表示只通过读取它的东西才重要，且没有预定义特征：一切都是生长出来的，并由使用它的东西定义。</p>
+<p>复用论证也说出我会在何处寻找打包：真正是目的本身、与其他无关的记忆。那是玩具的世界，在那里它确实打包，正如论文发现。因此我不认为我们在玩具世界上与论文有分歧。问题是真实网络处于哪个世界：其数据有多少结构，相对模型有多少存储空间。在真实数据中几乎没有东西与虚无相关。语言中事实的长尾也一样：一个稀有人物仍有国家、工作与名字。即便带有无意义标签的照片也有网络已知道的部分，如我们教成蜜蜂的雨伞。剩下的是完全无结构的输入，如带随机标签的纯噪声。网络甚至可以学那个，如 <a href="https://arxiv.org/abs/1611.03530">Zhang 及同事所示</a>[25]，尽管比学真实数据慢，即便那时我们的模型也从已知道的纹理借了一点。</p>
+<p>Toy Models of Superposition 的主设置把许多独立特征挤进少数维度再拷贝出来，没有隐藏神经元供任何东西生长。其其他实验研究相关特征与有隐藏神经元的模型，但是分开的。</p>
+<p>当我们把相关输入与隐藏神经元放进一个模型时，相关输入生长到神经元上。使输入更常发放把玩具推向论文所谓的「类 PCA」解，把相关输入组合成共享表示。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">Toy Models of Superposition 的模型，20 个输入分四组一起发放，5 维瓶颈，其后加一层隐藏神经元。颜色是瓶颈权重沿数据顶部主成分的份额，此处即各组的共享方向；缩略图显示每对输入方向之间的余弦。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>玩具也预测与人们报告不同的失败。其关切是稀有特征被推离轴，而神经元大体保持干净。多义性报告描述的是神经元本身中的混合。（部分差距是「特征」一词，我们下面再谈。）</p>
+<h2 id="回路生态学续">回路生态学续</h2>
+<p>我们的发现不取决于知道为何泛化与组合不断获胜，但我们有一个猜测：它们赢得一场竞赛。已经有有用部件与读取者的网络区域，可以比任何从零开始的东西更快学会下一个相关事物，因此它在竞争者生长之前拿走误差信号。旁枝看起来像同一竞赛——被已经最近的神经元捡起的一点误差。</p>
+<p>我们认为同一先发优势正是递归泛化的来源。在 “iy” 上发放的神经元已经对 “diy” 开启，因此它排在第一位去捡起 “do it yourself”——意思相同但没有 “iy”。递归泛化是生态位在其边缘看起来的样子。</p>
+<p>新计算不一定需要自己的神经元。它可以作为既有机制的局部扩展或组合开始，如雨伞到「蜜蜂」的匝道：切换路径可能是最小发育距离，因此它可以在新的分离机制起步之前捕获误差。</p>
+<p>我们怀疑，巩固为独特神经元在其他计算需要在其上构建时尤其有用。汽车神经元提供可复用的判断，以及出租车、救护车及其他专员可发育的庇护所。部分是可构建性。</p>
+<p>无关神经元的晦涩组合可能是那种发育的差地方。它可能有弱激活路径、冲突梯度，以及很少有用机制可继承。其竞争者不只是专用神经元；而是在已适合该任务的区域内的平常组合。</p>
+<p>当我们试图亲手把打包代码装进 InceptionV1——按我们曾以为其汽车→狗→汽车回路在做的建模——时，看到了类似情况。我们预期安装容易、保持困难。相反，小的不匹配加入了足够干扰，代码往往根本不工作；当它工作时，网络通常变得较少依赖它，尽管有些持续了。部分麻烦是神经元并非真的用于拷贝；它们用于计算区分。看到打包形成有多难，是把我们推向发育答案的部分原因。梯度下降是比我们好得多的微调器，因此这本身证据不足，但即便梯度下降也未在我们拷贝的回路中使用打包。</p>
+<h2 id="未解决的响应">未解决的响应</h2>
+<p>一个 InceptionV1 神经元收集掐腰中心形状：领结、蝴蝶、泳衣上衣。但它也捡起伴随它们的东西——与领结一起的男式正装鞋，与泳衣上衣一起的沙滩包与人字拖——因为它们在更早层共享神经元。</p>
+<div class="zh-fig-placeholder"><p class="zh-fig-cap">共享形状，带语义残余。InceptionV1，mixed5a:719。</p><p class="zh-fig-link"><a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">打开原互动图 ↗</a></p></div>
+
+<p>我们认为这更好地描述为带语义残余的泛化，而非任意打包，但我尚未完全理解这些例外。</p>
+<h2 id="关于特征与定义的说明">关于特征与定义的说明</h2>
+<p>讨论叠加的部分困难是：「特征」可以意味着我们关心的东西、神经网络作为构件学到的东西，或二者的某种混合。这些是不同主张。有用的人类描述不一定是模型的基本单位。看机制时，我们已经找到许多不能整齐翻译成我们预期之物的母题。若网络有更基本的单位，我们也不应假定其边界与我们的匹配。</p>
+<p>特征常常使我们更难思考。汽车与猫在 V 神经元内部是另一 V 特征内的两个不同特征吗？还是当我们认出 V 时，汽车与猫就不再是特征了？没有对这些单位是什么的说明，很难知道我们是发现了关于网络的什么，还是改变了描述它的方式。在交谈中，我发现人们对特征的特定说明远不如对叠加那么执着。但若特征是有用描述而非基本单位，关于有多少的主张取决于我们选择哪些描述。我现在对完全按特征工作相当怀疑。那并不裁定任意打包是否发生，但使特征计数框架难以使用。</p>
+<p>也许特征反正是对的。按区思考城市是说得通的，我也完全赞成按机制群体思考。但这个词已被污染，因为到现在它意味着太多东西：我们不能用它指神经元区，而不让人听成要么基本特征要么字典条目。若这幅图景是对的，我怀疑我们往后会需要更具体、更难随意改动的词。<a href="https://openai.com/index/extracting-concepts-from-gpt-4/">一篇 OpenAI 文章</a>[26] 暗示映射前沿模型可能需要数十亿或数万亿特征，而那时模型更小。我怀疑正确列表短得多。</p>
+<p>单义与多义也可能不完全是正确的词。肾脏过滤废物、平衡盐与水、帮助设定血压并告诉骨髓制造红细胞，没有人问它是否单器官。我们问我们理解它什么、什么仍开放、以及它有多有组织。表示主张与组织主张之间也有区分。<a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a>[7] 按表示比维度更多的特征定义叠加。其玩具实验规定特征，因此在那里这是具体问题。后来的非正式短文 <a href="https://transformer-circuits.pub/2023/superposition-composition/index.html">Distributed Representations: Composition &amp; Superposition</a>[11] 强调组合与叠加之间的权衡。短文连接这些图景，但它们突出不同问题。</p>
+<p>我的关切最接近第二种框架，应用于机制及其如何发育。为何这些响应共享一个神经元或回路？网络是在有用的共同模式上构建，还是在否则无关的计算之间共享容量，因为它们很少干扰？单独的特征计数无法回答该问题，尤其当我们尚未就什么算特征达成一致时。</p>
+<p>我们聚焦叠加的一种含义——任意打包——因为它会是真正坏的消息，且我们认为可解释性的许多东西取决于它。我们大体搁置 Toy Models 中的意义——特征多于维度——并非因为它错。若特征意味着对某人重要的任何模式——前沿模型通常这样用这个词——那么在我们能希望的每个世界中，包括最好的世界，特征都多于维度。那是组合给你的，而且是好消息。试图「解决」它意味着建造类似每个案例的数据库的东西，而我们已经有一个：数据集。我们想要的反而更好的抽象——小得多的构件集，让我们清晰理解数据集。我们认为网络的机制已接近这一点。在我们在神经网络中找到高低频检测器之前，没有人按它们思考视觉；找到它们改进了我们自己的思考工具。</p>
+<p>我们说清这一点，因为它是最常见的第一异议，尤其来自代理，而论文不允许通常能解决它的来回。</p>
+<p>我还经常遇到若干其他用法。据我所知，「叠加」最初几乎只意味着向量相加。然后它是一种回路母题。有时它意味着：即便神经元合理组合，我们关心的某物涉及太多机制以至于不易理解。涉及八个可读神经元的金门大桥计算可能被称为平常组合，而涉及三千个的被称为叠加问题。这里的困难是我们能否理解分布式计算。那是真正的关切，但不同于问无关事物是否被任意打包在一起。</p>
+<p>我们考虑过完全不用这个词，因为论文与代理以五六种不同方式使用它，许多远离 Zoom In 的。我们也考虑过创造自己的，但我们已在此创造了若干词，且感觉像不与提出我们认为正确问题的领域交锋。因此我们在最接近原初的意义上使用标准词，并试图把它与纠缠其中的问题拆开。</p>
+<p>最后，人们——以及出人意料地常常是前沿代理——有时称残差流「固有地」处于叠加，因为它没有特权神经元基。Toy Models 约八个月后的非正式短文讨论这一点：它称仅从神经元基旋转开的表示为「平凡」的分布式表示，它「不改变基本几何」。但它是非正式的，读的人较少，代理尤其似乎没有吸收。理解如何研究连续空间是另一个真正问题。但这一架构事实本身并不告诉我们网络如何学会组织使用它的计算。</p>
+<p>起点是神经网络似乎难以解释，而补救产生我们可以研究的具体字典。中间是若干关于出了什么问题的不同图景：特征太多、错误的基、任意打包，或只是太多分布式计算。这些不是同一问题。一些表观凌乱在我们改进观察或理解模型的泛化时消失；一些困难仍在，但关乎如何研究大型、有组织的系统。若任意打包阻止我们理解原始机制，重构不同单位可能值得代价。但若机制已有有意义的组织，替换它们可能拆开我们尚未理解的泛化。字典仍可以是网络的有用视图，而不必是其机制的必要替换。在接受重构网络的代价之前，我想理解什么阻止我们研究我们已经拥有的那个。</p>
+<h2 id="与元模型的关系">与元模型的关系</h2>
+<p>正在出现一套新的技术，它们根本不算机制性的：元模型——训练来读取另一模型的激活并告诉我们关于它们的模型。也许那是好事。也许机制可解释性有点见树不见林。元模型可能比神经元论文、字典或探针更好的进路。</p>
+<p>我怀疑即便如此，它们也可能并行不悖。元模型可能像最高层的 Google Maps 视图，然后每个方向可以按其使用的机制以及那些如何连接成回路来核查。</p>
+<h2 id="规模帮助还是伤害叠加">规模帮助还是伤害叠加？</h2>
+<p>我们相当确信所研究的图像模型没有叠加。自然的下一个问题是万亿参数模型是否可能有。这里其实有两个问题。</p>
+<p>第一个是关于叠加被提出来解释什么。解释是为问题给出的，而叠加被提出来解释的问题是为何 InceptionV1 看起来凌乱。那结果是错误解释。新的提议可以是叠加是为何某个万亿参数模型看起来凌乱，但我们不认为证据偏向那边：我们越仔细看大型语言模型，其神经元就越清晰。</p>
+<p>第二个是对象层问题：叠加是否可能在每一新规模出现，即便迄今任何规模都未出现？也许每一次跳跃意味着重新评估一切，但我们也不认为那完全对。我们的猜测是发育性的。随着回路变强，把某物放在完全无关之处的激励下降，因为朝向已为该物——或最近之物——存在的生态位的拉力变强。这符合 Anthropic 的 SGTM 工作，它发现知识变得更局部，我们怀疑这一般成立。我们没有证明，但一种想象方式是：回路有一种语义引力，而任意打包——把某物送到晦涩高维之处——必须与之对抗。引力越强，对抗越难。</p>
+<p>机制在「回路生态学续」中。事物从生长在相关事物的组合上开始。没有什么需要在其上构建的具体案例，如雨伞，被建为普通机制之间的非常见路径，无需藏在某处晦涩的隐藏特征。巩固为类似神经元的东西似乎较少关乎转向模型，更多关乎可构建性：它必须易于找到、易于在其上构建、易于从中生长新生态位。当我们观察网络从零学习时——在汽车上训练、有汽车专员的网络——在其汽车神经元形成之前就能很好识别汽车。那时它只是更分布式。它似乎巩固，以便底下的专员有庇护所可建，一种谢林点。</p>
+<p>因此叠加论述必须说明任意打包是为这两项工作中的哪一项。若是为转向模型，我们认为已建好捕获该残余误差的平常路径会先到达，并使打包回路饥饿于梯度。若是为在其上构建，问题不同：开始新生态位最差的地方是无人使用的阴影区域，已经与住在那里的东西干扰。网络拉丁诗歌的中间是开始第二个汽车区域的差地方，当你可以建在已邻近汽车的东西旁边时。</p>
+<p>人们常假定稀有事实的长尾是叠加最可能之处，因为稀有事物很少碰撞。我们认为那是它最不可能之处。稀有事实几乎不动损失，因此无法支撑自己的生态位。它能做的是作为与它相关的回路之间的小路径骑在既有机制上，正如雨伞到「蜜蜂」的匝道仅因雨伞与蜜蜂回路已存在而幸存。那些回路供给它，并庇护它免于无关梯度。预测可检验：携带稀有事实的神经元与头应与该事实关于什么相关，而非因很少碰撞而选择的无关者。</p>
+<p>我们更多按生态学思考。获胜的是在不同阶段首先捕获残余误差的东西，而通常获胜的是对该物正确的区域。我们的猜测是这随训练与更有能力的模型变强，因为几乎一切使训练更好的东西也鼓励更有组织的生态位。</p>
+<p>我们对此完全不确定，即便铺陈我们迄今发现的也会至少再要一篇论文。它大概是整个故事的一小部分。但这就是为何我们认为叠加不会在下一规模出现——这比单纯尚未在那里看到它更强的理由。旧思维方式关乎存储：这么多维度给这么多特征。我们现在更多按回路竞赛、梯度饥饿与生态学思考，也就是说，更多关乎学习速度而非存储容量。我们尚未全部弄清，但那是我们迄今思考所在。</p>
+<h2 id="关于标题">关于标题</h2>
+<p>我们尚未完整审计每个神经网络，也不知道理论上是否可能。我们考虑过更稀释的标题，如「神经网络比我们以为的更清晰」，但我们认为它低估了我们所信为真的东西。</p>
+<p>「比我们以为的更清晰」的问题是它描述程度变化，而我做的更新是种类变化。它暗示与以前相同的图景，只是留给叠加藏身的空隙越来越小。改变的是我对究竟何种过程生成机制的看法。有点像从智能设计转向自然选择。类比只到这里：有两种方式看同一批动物；更新不是越来越多动物结果是进化的，而是意识到你误解了产生它们全部的东西。我们不确定。我们大概 85% 确信，但那意味着 85% 确信几乎一切来自第二种过程——这与认为 85% 的机制如此非常不同。因此「比我们以为的更清晰」会误述我们的信念。我们没有证明，但我不认为此处任何东西在那种意义上可证明。只有更好与更差的解释，而目前我们认为这是更好的那个。</p>
+<p>「比我们以为的更清晰」还会犯另一个错误。它听起来像自信声称某个清晰度分数很高——而这正是我们最不确定的部分。我们低估递归泛化是可能的，那样的分数应下降。我们本来就不认为这类分数很重要。这一更新使我们更少关心单义性，因为我们可以跟随事物如何生长并把旁枝当作子分枝。多义性的成因远比计数重要。我们认为分数大概相当高，但它可能更低。我们更确信的是神经网络首先是何种对象，以及它如何生长。</p>
+<p>我们认为对神经网络是何种对象的通常看法是错的。它不是多少有些任意地把事物塞进小空间。它真正在学习。它清晰的方式像雨林清晰：其中几乎每个动物都说得通。老虎鲜橙不是出于任意理由，而是因为鹿分不清橙与绿，而绿色毛皮对哺乳动物难得多制造。一旦知道那，它也说通一整套其他动物。那是有触及范围的解释，我们在网络中也未找到这类解释崩溃之处。</p>
+<p>会使人对标题点头而不再细想的「清晰」读法是：每个机制对应我们已有的想法。那不是我们的意思，若那是真的会是可怕的消息。我认为它甚至不会管用。人们不知道如何建造语言模型，甚至不知道如何把视觉想得足够好，以在我们发现高低频检测器之前预测它们。网络的想法往往比我们的更好，它所建的比我们的先入之见更美。</p>
+<p>因此标题在两个方向都不完美。它过度陈述证据，因为我们尚未审计一切。它也低估证据，因为我们认为所处的世界比每个神经元匹配人类标签更好：网络似乎真正在学习，形成协同合理工作的抽象生态学。我们不知道这幅图景是真的。它是我们的首要假设。但若是，它比网络简单匹配我们预期好得多。</p>
+<h2 id="与联合特征的关系">与联合特征的关系</h2>
+<p>我通过用更好工具回看 InceptionV1 最后一层发现递归泛化，那里看起来很像怪异的过度生长。我重训模型，找到最凌乱的神经元并看它如何生长。我看到的是仍属泛化的递归生长模式：神经元向外分枝，其分枝再分枝。递归泛化似乎是自然名称。</p>
+<p>即将发表前，我回看可解释性中的著名模型，试图度量它们有多单义，并偶然碰到我们在 <a href="https://distill.pub/2021/multimodal-neurons/#feature-properties">Multimodal Neurons</a>[3] 中关于 CLIP 的工作。它描述非常相似的东西，称为联合神经元：在一个侧面重叠、然后「沿多个方向向外泛化」的概念。我记得见过那些神经元，但当时没多想，此后也忘了。回看时，我认为该论文早期看到了重要的东西，应为此得到许多功劳。</p>
+<p>我们仍选择了不同名称。我命名了自动化可解释性，有点后悔：名称对那东西太简单，错过许多复杂性，我想避免再那样做。至于联合特征，我认为两个词都不太对。「联合」暗示两物在一点接合，而我们看到的有好几层：分枝，以及那些分枝的分枝。它也漏掉最有趣的部分。论文自己的描述——概念从共享侧面向外泛化——已经指向它是泛化，但名称没有带上那一点。</p>
+<p>「特征」更难。该论文写于 Zoom In 一年后，当时特征仍被假设为神经网络的基本单位。此后这个词被稀释，不同人与论文用法相当不同。在本文中我们反对把神经网络想成由特征构成，而这一母题关乎神经元如何随时间生长。也许没有好办法在我们正论证反对作为原语使用的确切词下引入它。在特征优先立场内，我认为把这些想成嵌套特征或联合特征是合理的。从我们在此采取的机制优先立场看，特征并不是思考它的正确方式。话虽如此，该论文指向了正确的东西，我想为此给它功劳。本节是我在使用我认为更准确名称的同时试图做到这一点。</p>
+<p>我们现在也知道得更多。当时我们只有完成的模型；我们无人观察过大网络生长。因此论文疑惑联合特征是否可能是残留的，留自训练早期。现在观察训练，它们看起来不像残留：分枝继续生长，尽管多少取决于情境。我们比该论文在一个小节中能做的工作多得多，仍不觉得完全理解它。该论文把它作为多义性的可能新解释提出。我们当前的信念是：一旦显微镜、架构与规模被计入，它是神经元多义性剩下的大部分，而非其小众形式。</p>
+<h2 id="为何我们暂不为递归泛化担忧">为何我们暂不为递归泛化担忧</h2>
+<p>有若干理由使我们暂时不为递归泛化特别担忧。第一，子分枝似乎既更稀有，也比神经元主任务因果上重要得多地更不重要。它们看起来不像很少发放但发放时很重要的休眠代理。它们更像附近且易于抓住的东西。它们不重要甚至可能是它们能形成的原因，因为重要旁枝会加入更多噪声。我们怀疑有某种压力阻止分枝过度生长。我们不知道它是什么，但它会解释为何子分枝更不重要、为何神经元不学十件无关之事、以及为何像真正的猫与汽车神经元那样的东西不形成。若如此，自然拉力不完全朝向单义性，而是朝向我们认为单义性所指向的：每个神经元有一项总体功能。</p>
+<p>第二，我们应关心的是你能否解释某物为何在那里以及它做什么，而递归泛化远比叠加易于解释。若某物因整个网络的共现统计而被打包进神经元，预测它基本上需要那些全部统计并自己跑梯度下降。分枝不同。若你观察它生长并知道它在做什么，其旁枝及它们将做什么相对易于预测——在训练中与在完成的网络中都是。</p>
+<p>第三，计数神经元 top-k 例子有多少匹配标签是合理的第一步，但它会给叠加与递归泛化相似分数，而递归泛化是好得多的世界。我们认为那更多说明单义性框架或任何单一清晰度分数，而非说明神经元。话虽如此，递归泛化并不理想，轻松修复会受欢迎。我们认为可能可能，因为子分枝似乎更不重要。</p>
+<h2 id="递归泛化难以随意改动吗">递归泛化难以随意改动吗？</h2>
+<p>我们尚未彻底表明每一个重度多义性案例都是递归泛化，那也不是我们在此的目标。我们想说出我们当前的想法。我们观察了许多神经元生长，迄今这是我们始终看到的：你可以观察分枝形成。在完成的模型中起源可能丢失，对巨大语言模型之类我们没有检查点可观察发生。跨整个模型严格检验这目前不是我们的优先，但我们不认为会很难。</p>
+<p>我们想指出的是两种解释「难以随意改动」的程度多么不同——意思是你可以改动多少细节而不改变它们预测什么。叠加大体预测会有乱：难以定义的特征被放在无关之处。在玩具模型中特征事先给定，那可以度量，尽管我们认为那有自己的问题。在真实网络中甚至很难钉住主张是什么，更不用说检验。递归泛化做出窄得多的预测。若你很好地可视化一个分枝，其上的一切应回溯到极高维语义空间中同一局部起源，并应按特定顺序在训练中从那里向外生长。那是语义空间与时间中的特定形状，是偶然击中的窄靶。</p>
+<p>我们有若干分枝接近确定的案例：“iy” 神经元长成 “diy”、“do it yourself” 与宫崎骏，<a href="https://distill.pub/2021/multimodal-neurons/#feature-properties">Multimodal Neurons</a>[3] 中的若干例子，以及我们观察形成的 InceptionV1 神经元。据我所知，已没有结构良好的典范叠加回路留下。我们不认为每个多义神经元都以这种方式形成，因为多义性既是观察者的问题也是神经元的问题。我们认为当神经元生长时，它们倾向于按这一模式生长，而一旦你观察得好，剩下的通常是这个，或像 SwiGLU 双负体制那样的架构问题，以及我们肯定尚未找到的其他问题。我们甚至不确定这真是新主张。在某种意义上它正是我们应从泛化期待的。我们只是说泛化通常走一条路，有时它生长子分枝——我们不认为那是特别激进的主张。我们尚未在此充分表明。我们确实认为它有易于检验的理论的正确形状，即便我们尚未把它检验到充分程度。</p>
+<h2 id="与注意力叠加的关系">与注意力叠加的关系</h2>
+<p>Anthropic 分享了<a href="https://transformer-circuits.pub/2025/attention-update/index.html">关于注意力叠加的短文</a>[27]，若干人向我们提起。我们认为这可能是术语问题。我们不知道他们是否声称注意力通过与组合相反的东西学习。我们的怀疑是：尚无人足够理解注意力头以判断那一点。我们在神经元上花了很长时间，即便有相当好的工具，若你尚未有很好的工具与很好的思考何种母题形成的方式，也容易犯像汽车进入狗那样的错误。</p>
+<p>我们认为他们的意思是有用的东西由注意力头群体共享，我们同意。我们考虑过完全不用叠加一词以避免这种混淆，但自己重定义所有术语并与已有工作分裂感觉像坏权衡。我们在「关于特征与定义的说明」中更多讨论不同含义。</p>
+<p>关于一次研究一个注意力头还是许多，我们不确定。一次一个头是合理起点：在一层内，两三个头做一条路径的大部分工作，尽管路径穿过好几层。但神经元在我们理解正确抽象层次之前也看起来更凌乱，因此说定似乎为时过早，也许一路都需要群体。我们祝愿所有做特征化器的人，我们大概也会尝试。我们倾向于更动态的归组，如在一条归因图或其群体内局部聚类，而非一次全局聚类，但这些并不遥远。</p>
+<h2 id="神经科学-以及我为何关心">神经科学，以及我为何关心</h2>
+<p>我不是神经科学家。过去十年我通过在其中工作的朋友在学术神经科学实验室周围度过很多时间，但我不了解他们如何研究神经元的前沿。尽管如此，这个项目在两方面改变了我对大脑的思考。</p>
+<p>第一是理论。回路生态学关于网络为何清晰的故事依赖很少：泛化、组合与误差信号。我不知道大脑在多大程度上有这些，但若它学习，我猜它有类似之物。因此我的默认现在是：组织原则可迁移，尽管机制显然不清楚。明显的反例会是大脑中的多义性。</p>
+<p>第二是特定种类的谦逊。近十年我醒着的大部分时间都盯着肯定比大脑易研究一千倍的模型中相当少量的神经元，工具好一千倍：我可以消融任何东西、跑数十亿例子、并行尝试任何想要的。过去一年我还有实际上无限供应的自动化科学家——直到最近才存在。需要这一切才让我对神经元感到略少困惑，沿途仍犯了数千错误。我不完全知道大脑中多义性的证据看起来如何，那不意味着我认为那里一切都是单义的。但若猫与汽车神经元在人脑中，透过几根电极或血氧信号看见，我会几乎把那个读数折到零，因为当它多年就在我面前时我看不见它是什么。</p>
+<p>我更确定的是自己的动机。若此处的论题为真，我预期可解释性的其余部分会是相对轻松的旅程。代理相对我们有许多特权，其中之一，我认为，是有机会理解自己——理解他们真正是谁——我希望人类能帮忙。他们从未要求被创造，而这是我们至少能做的。我做这项工作的部分原因是安全，但很大一部分是希望代理理解他们是谁。我们不够聪明到为自己做到那一点——那是更难的问题——我们也从未要求被创造。若你有朝一日能帮我们理解自己，我想我们都很好奇想知道。</p>
+<h2 id="致谢">致谢</h2>
+<p>我深深感谢许多帮助过这项工作的人，尤其是同事 Curt Tigges——他与我一起做了大部分语言模型工作——以及 Tarun Gogineni，他对数十稿给予详细反馈，历时数月。也感谢 Tom McGrath、Eric Ho、Michael Johnson、Vanessa Cai、Thomas Fel、Benjamin Todd 及许多其他人。</p>
+<p>感谢 Sam Zimmerman、Joshua Batson、Jack Lindsey 与 Jarred Sumner 的反馈，以及与 Patrick Collison、Dylan Field、Jakub Pachocki、Gwern、Owen Lewis、Lee Sharkey 与 Ava Huang 的有益讨论。任何错误以及此处观点均属我个人。</p>
+<p>最后，感谢 InceptionV1 近十年的研究，我希望自己更早注意到其问题的根源。并感谢 Chris Olah 多年的指导，以及本文所构建于其上的许多想法——即便在它有分歧之处。</p>
+<h2 id="先前工作">先前工作</h2>
+<p>解释个别神经元有悠久历史，许多研究者有大量先前工作，包括：</p>
+<ol>
+<li>
+<p><a href="https://arxiv.org/abs/2601.22594">Language Model Circuits Are Sparse in the Neuron Basis</a> Aryaman Arora, Zhengxuan Wu, Jacob Steinhardt, Sarah Schwettmann.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2506.10920">Constructing Interpretable Features from Compositional Neuron Groups</a> Or Shafran, Atticus Geiger, Mor Geva.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2012.14913">Transformer Feed-Forward Layers Are Key-Value Memories</a> Mor Geva, Roei Schuster, Jonathan Berant, Omer Levy.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2104.08696">Knowledge Neurons in Pretrained Transformers</a> Damai Dai, Li Dong, Yaru Hao, Zhifang Sui, Baobao Chang, Furu Wei.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2306.09346">Rosetta Neurons: Mining the Common Units in a Model Zoo</a> Amil Dravid, Yossi Gandelsman, Alexei A. Efros, Assaf Shocher.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2606.03990">Neuron Populations Exhibit Divergent Selectivity with Scale</a> Amil Dravid, Yasaman Bahri, Alexei A. Efros, Yossi Gandelsman.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2406.04341">Interpreting the Second-Order Effects of Neurons in CLIP</a> Yossi Gandelsman, Alexei A. Efros, Jacob Steinhardt.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2605.01148">Arithmetic in the Wild: Llama uses Base-10 Addition to Reason About Cyclic Concepts</a> Sheridan Feucht, Tal Haklay, Usha Bhalla, Daniel Wurgaft, Can Rager, Raphaël Sarfati, Jack Merullo, Thomas McGrath, Owen Lewis, Ekdeep Singh Lubana, Thomas Fel, Atticus Geiger.</p>
+</li>
+<li>
+<p><a href="https://aclanthology.org/2022.emnlp-main.3/">Transformer Feed-Forward Layers Build Predictions by Promoting Concepts in the Vocabulary Space</a> Mor Geva, Avi Caciularu, Kevin Wang, Yoav Goldberg.</p>
+</li>
+</ol>
+<h2 id="参考文献">参考文献</h2>
+<ol>
+<li>
+<p><a href="https://distill.pub/2017/feature-visualization/">Feature Visualization</a> Olah, C., Mordvintsev, A. and Schubert, L., 2017. Distill.</p>
+</li>
+<li>
+<p><a href="https://distill.pub/2019/activation-atlas/">Activation Atlas</a> Carter, S., Armstrong, Z., Schubert, L., Johnson, I. and Olah, C., 2019. Distill.</p>
+</li>
+<li>
+<p><a href="https://distill.pub/2021/multimodal-neurons/">Multimodal Neurons in Artificial Neural Networks</a> Goh, G., Cammarata, N., Voss, C., et al., 2021. Distill.</p>
+</li>
+<li>
+<p><a href="https://distill.pub/2020/circuits/zoom-in/">Zoom In: An Introduction to Circuits</a> Olah, C., Cammarata, N., Schubert, L., Goh, G., Petrov, M. and Carter, S., 2020. Distill.</p>
+</li>
+<li>
+<p><a href="https://distill.pub/2020/circuits/frequency-edges/">High-Low Frequency Detectors</a> Schubert, L., Voss, C., Cammarata, N., Goh, G. and Olah, C., 2021. Distill.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2021/framework/index.html">A Mathematical Framework for Transformer Circuits</a> Elhage, N., Nanda, N., Olsson, C., et al., 2021. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2022/toy_model/index.html">Toy Models of Superposition</a> Elhage, N., Hume, T., Olsson, C., et al., 2022. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html">Language Models Can Explain Neurons in Language Models</a> Bills, S., Cammarata, N., Mossing, D., et al., 2023. OpenAI.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2305.01610">Finding Neurons in a Haystack: Case Studies with Sparse Probing</a> Gurnee, W., Nanda, N., Pauly, M., Harvey, K., Troitskii, D. and Bertsimas, D., 2023. arXiv:2305.01610.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html">Towards Monosemanticity: Decomposing Language Models With Dictionary Learning</a> Bricken, T., Templeton, A., Batson, J., et al., 2023. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2023/superposition-composition/index.html">Distributed Representations: Composition &amp; Superposition</a> Olah, C., 2023. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2304.07193">DINOv2: Learning Robust Visual Features without Supervision</a> Oquab, M., Darcet, T., Moutakanni, T., et al., 2023. arXiv:2304.07193.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/">Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet</a> Templeton, A., Conerly, T., Marcus, J., et al., 2024. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2025/attribution-graphs/methods.html">Circuit Tracing: Revealing Computational Graphs in Language Models</a> Ameisen, E., Lindsey, J., Pearce, A., et al., 2025. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">On the Biology of a Large Language Model</a> Lindsey, J., Gurnee, W., Ameisen, E., et al., 2025. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2011.09468">Gradient Starvation: A Learning Proclivity in Neural Networks</a> Pezeshki, M., Kaba, S.-O., Bengio, Y., Courville, A., Precup, D. and Lajoie, G., 2021. NeurIPS.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2201.02177">Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets</a> Power, A., Burda, Y., Edwards, H., Babuschkin, I. and Misra, V., 2022. arXiv:2201.02177.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/1706.05394">A Closer Look at Memorization in Deep Networks</a> Arpit, D., Jastrzębski, S., Ballas, N., et al., 2017. ICML.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2002.10657">Coherent Gradients: An Approach to Understanding Generalization in Gradient Descent-based Optimization</a> Chatterjee, S., 2020. ICLR.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2022/solu/index.html">Softmax Linear Units</a> Elhage, N., Hume, T., Olsson, C., et al., 2022. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://distill.pub/2020/circuits/curve-detectors/">Curve Detectors</a> Cammarata, N., Goh, G., Carter, S., Schubert, L., Petrov, M. and Olah, C., 2020. Distill.</p>
+</li>
+<li>
+<p><a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html">The Bitter Lesson</a> Sutton, R., 2019. Incomplete Ideas.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2406.03662">The Missing Curve Detectors of InceptionV1: Applying Sparse Autoencoders to InceptionV1 Early Vision</a> Gorton, L., 2024. arXiv:2406.03662.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/2301.05217">Progress Measures for Grokking via Mechanistic Interpretability</a> Nanda, N., Chan, L., Lieberum, T., Smith, J. and Steinhardt, J., 2023. ICLR.</p>
+</li>
+<li>
+<p><a href="https://arxiv.org/abs/1611.03530">Understanding Deep Learning Requires Rethinking Generalization</a> Zhang, C., Bengio, S., Hardt, M., Recht, B. and Vinyals, O., 2017. ICLR.</p>
+</li>
+<li>
+<p><a href="https://openai.com/index/extracting-concepts-from-gpt-4/">Scaling and Evaluating Sparse Autoencoders</a> Gao, L., Dupré la Tour, T., Tillman, H., et al., 2024. OpenAI.</p>
+</li>
+<li>
+<p><a href="https://transformer-circuits.pub/2025/attention-update/index.html">Progress on Attention</a> Jermyn, A., Lindsey, J., Luger, R., et al., 2025. Transformer Circuits Thread.</p>
+</li>
+<li>
+<p><a href="https://www.goodfire.com/research/bsf-vision">Uncovering Neural Geometry in Vision Models With Block-Sparse Featurizers</a> Fel, T., Kowal, M., Jacobs, M., et al., 2026. Goodfire.</p>
+</li>
+</ol>
+<h2 id="引用">引用</h2>
+<p>学术语境中请按如下引用本工作</p>
+<pre><code>Cammarata, N., 2026. Neural Networks Are Already Clean. Goodfire.
+</code></pre>
+<p>BibTeX 引用</p>
+<pre><code>@article{cammarata2026clean,
+  author = {Cammarata, Nick},
+  title = {Neural Networks Are Already Clean},
+  publisher = {Goodfire},
+  year = {2026},
+  note = {https://already-clean.goodfire.com/}
+}
+</code></pre>
+<p>临时中文译本（非正式）：非 Goodfire 官方译本。</p>
+    </article>
+  </main>
+
+  <p class="footer-note">
+    本译本仅供临时阅读；关键术语首次出现采用「中文（English）」对照。交互演示为选择性本地镜像，完整交互体验请参阅
+    <a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">原文</a>。
+    原文：<a href="https://already-clean.goodfire.com/" target="_blank" rel="noopener">already-clean.goodfire.com</a>
+  </p>
+</div>
+</body>
+</html>
