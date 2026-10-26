@@ -1,0 +1,39 @@
+.ladybug-strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:11px}.ladybug-example{min-width:0}.ladybug-example img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:3px}.ladybug-example>span{display:flex;justify-content:space-between;font:11px/1.7 ui-monospace,monospace;color:#91a0a3;margin-top:5px}.ladybug-example b{font-weight:500;color:#57777b}.ladybug-example small{display:block;color:#889498;font-size:11px;line-height:1.6}.ladybug-example .ladybug-nearby{color:#af7f3d}.ladybug-fv-note{display:flex;gap:25px;align-items:center;margin:24px 0}.ladybug-fv-note>img{width:145px;flex:none;border-radius:3px}.ladybug-fv-note>p{margin:0}.ladybug-circuit-head{display:flex;justify-content:space-between;font:11px/1.5 var(--sans);color:#88979b;margin:0 0 16px}.ladybug-circuit-head span:last-child{width:250px}.ladybug-circuit-body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(120px,.7fr) 250px;gap:0;align-items:center;max-width:970px;margin:auto}.ladybug-inputs{display:grid;gap:15px}.ladybug-input{display:grid;grid-template-columns:92px 1fr;gap:15px;align-items:center;border:0;color:inherit;min-height:100px}.ladybug-input-fv{display:block;width:92px;height:92px;border-radius:3px}.ladybug-input b{font:500 14px/1.5 var(--sans);color:#4b656d}.ladybug-input .unit-id{font-size:11px}.ladybug-mini-examples{display:flex;gap:5px;align-items:center;margin-top:7px}.ladybug-mini-examples img{display:block;width:35px;height:35px;border-radius:2px}.ladybug-mini-examples small{max-width:135px;font:10px/1.45 var(--sans);color:#8b989c;margin-left:5px}.ladybug-connectors{width:100%;height:330px;overflow:visible}.ladybug-connectors text{font:12px ui-monospace,monospace}.ladybug-target{border:0;display:block;padding-left:20px;text-align:center;color:inherit}.ladybug-target>img{width:165px;height:165px;display:block;margin:0 auto 15px;border-radius:4px}.ladybug-target .unit-id{font-size:12px}.ladybug-target b{display:block;font:500 16px/1.5 var(--sans);color:#41686b}.ladybug-target small{font:11px/1.6 var(--sans);color:#8a989c}.ladybug-circuit figcaption{margin-top:22px}.ladybug-figure .evidence-methods .ladybug-strip{margin-top:20px}
+#inception-last-layer{border-block:1px solid var(--line);padding:16px 0}#inception-last-layer .ill-strip{display:grid;grid-template-columns:repeat(2,minmax(0,2fr)) 12px minmax(0,5fr);gap:6px}#inception-last-layer .ill-lab{font:500 13px/1.4 var(--sans);color:var(--muted);padding-bottom:2px}#inception-last-layer .ill-lab-fv{grid-column:1/3}#inception-last-layer .ill-lab-data{grid-column:4}#inception-last-layer svg{display:block;width:100%;overflow:hidden;border-radius:2px}#inception-last-layer .ill-fv{grid-row:2;aspect-ratio:1}#inception-last-layer .ill-data{grid-column:4;grid-row:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;min-width:0}#inception-last-layer .ill-data svg{height:100%}#inception-last-layer figcaption{font:11px/1.4 var(--sans);color:var(--muted);margin:8px 0 0;max-width:none}
+@media(max-width:640px){#inception-last-layer .ill-strip{grid-template-columns:repeat(2,minmax(0,1fr))}#inception-last-layer .ill-lab-fv,#inception-last-layer .ill-lab-data,#inception-last-layer .ill-data{grid-column:1/-1}#inception-last-layer .ill-lab-data{grid-row:3;padding-top:6px}#inception-last-layer .ill-data{grid-row:4;grid-template-rows:none;gap:4px}#inception-last-layer .ill-data svg{height:auto;aspect-ratio:1}}
+#essay figure:is(#inception-last-layer,#ladybug-figure,#packing-vs-growing,#negative-poles,#crushed-3b-figure,#crushed-last-layer,#ladybug-circuit,#weak-suffix-ablation,#weak-close-calls,#expert-organization,#gpt2-xl-mixtures,#period-neuron-figure,#toy-pca-density,#swiglu-audit,#signs-figure,#residual-explorer,#residual-stream-lenses,#edge-motifs,#curve-reconstruction,#weak-ablation-grid,#wallet-circuit,#dreary-connections,#psalm-recitation,#training-figure,#racing-figure,#social-security-circuit){border-top:0;border-bottom:0}
+
+
+/* Compact last-layer neuron gallery chrome (selector mostly decorative here) */
+.lln-models{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.lln-models button{font:12px/1.3 var(--sans,sans-serif);padding:4px 10px;border:1px solid #c9d4d3;background:#f7f8f7;border-radius:4px;color:#556}
+.lln-models button[aria-pressed="true"]{background:#e7efee;border-color:#8aa;color:#234}
+.lln-strip{display:flex;align-items:center;gap:6px;margin:0 0 14px;overflow:auto}
+.lln-selector{display:flex;gap:6px;overflow:auto;padding:2px 0}
+.lln-choice{flex:none;border:1px solid #d5dedd;background:#fff;border-radius:6px;padding:4px;cursor:default;min-width:64px}
+.lln-choice[aria-pressed="true"]{border-color:#5a8;box-shadow:0 0 0 1px #5a8}
+.lln-preview img{display:block;width:56px;height:56px;border-radius:3px;object-fit:cover}
+.lln-name{display:block;font:10px/1.3 var(--sans,sans-serif);color:#678;margin-top:3px;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lln-arrow{border:0;background:transparent;font-size:22px;color:#789;padding:0 4px}
+.lln-live,.lln-selected-row{display:none}
+.lbx-gallery{margin-top:8px}
+
+
+#inception-last-layer{border-block:1px solid #dce2e2;padding:16px 0;margin:24px 0}
+#inception-last-layer .ill-strip{display:grid;grid-template-columns:repeat(2,minmax(0,2fr)) 12px minmax(0,5fr);gap:6px}
+#inception-last-layer .ill-lab{font:500 13px/1.4 var(--sans,sans-serif);color:#717a80;padding-bottom:2px}
+#inception-last-layer .ill-lab-fv{grid-column:1/3}
+#inception-last-layer .ill-lab-data{grid-column:4}
+#inception-last-layer svg{display:block;width:100%;overflow:hidden;border-radius:2px}
+#inception-last-layer .ill-fv{grid-row:2;aspect-ratio:1}
+#inception-last-layer .ill-data{grid-column:4;grid-row:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;min-width:0}
+#inception-last-layer .ill-data svg{height:100%}
+#inception-last-layer figcaption{font:11px/1.4 var(--sans,sans-serif);color:#717a80;margin:8px 0 0;max-width:none}
+@media(max-width:640px){
+#inception-last-layer .ill-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+#inception-last-layer .ill-lab-fv,#inception-last-layer .ill-lab-data,#inception-last-layer .ill-data{grid-column:1/-1}
+#inception-last-layer .ill-lab-data{grid-row:3;padding-top:6px}
+#inception-last-layer .ill-data{grid-row:4;grid-template-rows:none;gap:4px}
+#inception-last-layer .ill-data svg{height:auto;aspect-ratio:1}
+}
+
