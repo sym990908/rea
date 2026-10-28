@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: tsv-log-demo
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: SPECIAL_INTERVAL_SEC
+        value: "45"
+      - key: SPECIAL_ENABLED
+        value: "true"
